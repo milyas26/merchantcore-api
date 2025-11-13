@@ -11,9 +11,17 @@
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
     "db:studio": "prisma studio",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "lint:check": "eslint \"src/**/*.{ts,tsx}\"",
+    "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix"
   },
-  "keywords": ["ecommerce", "api", "fastify", "prisma"],
+  "keywords": [
+    "ecommerce",
+    "api",
+    "fastify",
+    "prisma"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -30,6 +38,9 @@
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",
     "@types/node": "^24.10.1",
+    "@typescript-eslint/eslint-plugin": "^8.46.4",
+    "@typescript-eslint/parser": "^8.46.4",
+    "eslint": "^9.39.1",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.3"
   }

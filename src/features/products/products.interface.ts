@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 
 export interface Product {
@@ -70,6 +71,6 @@ export interface ErrorResponse {
   error: {
     code: string;
     message: string;
-    details?: any;
+    details?: Prisma.PrismaClientKnownRequestError;
   };
 }

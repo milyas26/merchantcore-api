@@ -16,18 +16,18 @@ export class ProductValidation {
   /**
    * Validate get products query parameters
    */
-  static validateGetProductsQuery(query: any): GetProductsQuery {
+  static validateGetProductsQuery(query: GetProductsQuery): GetProductsQuery {
     try {
       return getProductsQuerySchema.parse(query);
     } catch (error) {
       if (error instanceof ZodError) {
-        const validationErrors = error.errors.map(err => ({
-          field: err.path.join('.'),
+        const validationErrors = error.errors.map((err) => ({
+          field: err.path.join("."),
           message: err.message,
         }));
 
         throw ErrorHandler.validationError(
-          'Invalid query parameters',
+          "Invalid query parameters",
           validationErrors
         );
       }
@@ -38,18 +38,20 @@ export class ProductValidation {
   /**
    * Validate get product by ID parameters
    */
-  static validateGetProductById(params: any): GetProductByIdParams {
+  static validateGetProductById(
+    params: GetProductByIdParams
+  ): GetProductByIdParams {
     try {
       return getProductByIdSchema.parse(params);
     } catch (error) {
       if (error instanceof ZodError) {
-        const validationErrors = error.errors.map(err => ({
-          field: err.path.join('.'),
+        const validationErrors = error.errors.map((err) => ({
+          field: err.path.join("."),
           message: err.message,
         }));
 
         throw ErrorHandler.validationError(
-          'Invalid product ID',
+          "Invalid product ID",
           validationErrors
         );
       }
@@ -60,18 +62,20 @@ export class ProductValidation {
   /**
    * Validate get product by slug parameters
    */
-  static validateGetProductBySlug(params: any): GetProductBySlugParams {
+  static validateGetProductBySlug(
+    params: GetProductBySlugParams
+  ): GetProductBySlugParams {
     try {
       return getProductBySlugSchema.parse(params);
     } catch (error) {
       if (error instanceof ZodError) {
-        const validationErrors = error.errors.map(err => ({
-          field: err.path.join('.'),
+        const validationErrors = error.errors.map((err) => ({
+          field: err.path.join("."),
           message: err.message,
         }));
 
         throw ErrorHandler.validationError(
-          'Invalid product slug',
+          "Invalid product slug",
           validationErrors
         );
       }
@@ -82,18 +86,18 @@ export class ProductValidation {
   /**
    * Validate check stock body parameters
    */
-  static validateCheckStock(body: any): CheckStockBody {
+  static validateCheckStock(body: CheckStockBody): CheckStockBody {
     try {
       return checkStockSchema.parse(body);
     } catch (error) {
       if (error instanceof ZodError) {
-        const validationErrors = error.errors.map(err => ({
-          field: err.path.join('.'),
+        const validationErrors = error.errors.map((err) => ({
+          field: err.path.join("."),
           message: err.message,
         }));
 
         throw ErrorHandler.validationError(
-          'Invalid stock check parameters',
+          "Invalid stock check parameters",
           validationErrors
         );
       }
@@ -104,17 +108,17 @@ export class ProductValidation {
   /**
    * Safely validate and return default values for query parameters
    */
-  static safeValidateQuery(query: any): GetProductsQuery {
+  static safeValidateQuery(query: GetProductsQuery): GetProductsQuery {
     try {
       return getProductsQuerySchema.parse(query);
-    } catch (error) {
+    } catch (_error) {
       // Return default values if validation fails
       return {
         page: 1,
         limit: 20,
         published: true,
-        sortBy: 'createdAt',
-        sortOrder: 'desc',
+        sortBy: "createdAt",
+        sortOrder: "desc",
       };
     }
   }

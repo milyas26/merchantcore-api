@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import { GetProductsQuery } from "./products.interface";
 
 export class ProductRepository {
@@ -18,7 +18,7 @@ export class ProductRepository {
     const skip = (page - 1) * limit;
 
     // Build where clause
-    const where: any = {
+    const where: Prisma.ProductWhereInput = {
       published,
     };
 

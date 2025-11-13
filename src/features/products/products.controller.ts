@@ -15,20 +15,25 @@ export class ProductController {
   async getProducts(request: FastifyRequest<{ Querystring: GetProductsQuery }>, reply: FastifyReply) {
     try {
       const result = await this.productService.getProducts(request.query);
-      
-      // Check if error response
-      if ('error' in result) {
+
+      if ("error" in result) {
         const error = result.error;
         const appError: AppError = {
           code: error.code,
           message: error.message,
           statusCode: 400,
-          ...(error.details && { details: error.details })
+          ...(error.details && { details: error.details }),
         };
-        return reply.code(appError.statusCode).send(ResponseHandler.error(appError));
+        return reply
+          .code(appError.statusCode)
+          .send(ResponseHandler.error(appError));
       }
 
-      return reply.code(200).send(ResponseHandler.success(result.data, undefined, result.pagination));
+      return reply
+        .code(200)
+        .send(
+          ResponseHandler.success(result.data, undefined, result.pagination)
+        );
     } catch (error) {
       request.log.error(error);
       const appError = ErrorHandler.handleUnknownError(error);
@@ -106,24 +111,31 @@ export class ProductController {
   }>, reply: FastifyReply) {
     try {
       const { variantId, quantity } = request.body;
-      
+
       if (!variantId || !quantity) {
-        const error = ErrorHandler.createError('MISSING_REQUIRED_FIELDS', 'Variant ID and quantity are required');
+        const error = ErrorHandler.createError(
+          "MISSING_REQUIRED_FIELDS",
+          "Variant ID and quantity are required"
+        );
         return reply.code(error.statusCode).send(ResponseHandler.error(error));
       }
 
-      const result = await this.productService.checkProductStock(variantId, quantity);
-      
-      // Check if error response
-      if ('error' in result) {
+      const result = await this.productService.checkProductStock(
+        variantId,
+        quantity
+      );
+
+      if ("error" in result) {
         const error = result.error;
         const appError: AppError = {
           code: error.code,
           message: error.message,
           statusCode: 400,
-          ...(error.details && { details: error.details })
+          ...(error.details && { details: error.details }),
         };
-        return reply.code(appError.statusCode).send(ResponseHandler.error(appError));
+        return reply
+          .code(appError.statusCode)
+          .send(ResponseHandler.error(appError));
       }
 
       return reply.code(200).send(ResponseHandler.success(result));

@@ -20,28 +20,10 @@ export class ProductService {
     query: GetProductsQuery
   ): Promise<GetProductsResponse | ErrorResponse> {
     try {
-      // Validate query parameters using Zod
       const validatedQuery = ProductValidation.validateGetProductsQuery(query);
-
-      // Get products from repository
       const result = await this.productRepository.findMany(validatedQuery);
-
-      // Convert Decimal to number for price and dimensions
-      const processedData = result.data.map((product) => ({
-        ...product,
-        price: product.price ? Number(product.price) : 0,
-        variants: product.variants.map((variant) => ({
-          ...variant,
-          price: variant.price ? Number(variant.price) : 0,
-          weight: variant.weight ? Number(variant.weight) : null,
-          length: variant.length ? Number(variant.length) : null,
-          width: variant.width ? Number(variant.width) : null,
-          height: variant.height ? Number(variant.height) : null,
-        })),
-      }));
-
       return {
-        data: processedData,
+        data: result.data,
         pagination: result.pagination,
       };
     } catch (error) {
@@ -51,7 +33,6 @@ export class ProductService {
         "message" in error &&
         "statusCode" in error
       ) {
-        // This is already an AppError from validation
         return ResponseHandler.error(error as AppError);
       }
       return ResponseHandler.error(ErrorHandler.handleUnknownError(error));
@@ -60,10 +41,7 @@ export class ProductService {
 
   async getProductById(id: string): Promise<ProductResponse | ErrorResponse> {
     try {
-      // Validate ID using Zod
       const validatedParams = ProductValidation.validateGetProductById({ id });
-
-      // Get product from repository
       const product = await this.productRepository.findById(validatedParams.id);
 
       if (!product) {
@@ -72,21 +50,7 @@ export class ProductService {
         );
       }
 
-      // Convert Decimal to number for price and dimensions
-      const processedProduct = {
-        ...product,
-        price: product.price ? Number(product.price) : 0,
-        variants: product.variants.map((variant) => ({
-          ...variant,
-          price: variant.price ? Number(variant.price) : 0,
-          weight: variant.weight ? Number(variant.weight) : null,
-          length: variant.length ? Number(variant.length) : null,
-          width: variant.width ? Number(variant.width) : null,
-          height: variant.height ? Number(variant.height) : null,
-        })),
-      };
-
-      return ResponseHandler.success(processedProduct);
+      return ResponseHandler.success(product);
     } catch (error) {
       if (
         error instanceof Error &&
@@ -94,7 +58,6 @@ export class ProductService {
         "message" in error &&
         "statusCode" in error
       ) {
-        // This is already an AppError from validation
         return ResponseHandler.error(error as AppError);
       }
       if (
@@ -111,12 +74,10 @@ export class ProductService {
     slug: string
   ): Promise<ProductResponse | ErrorResponse> {
     try {
-      // Validate slug using Zod
       const validatedParams = ProductValidation.validateGetProductBySlug({
         slug,
       });
 
-      // Get product from repository
       const product = await this.productRepository.findBySlug(
         validatedParams.slug
       );
@@ -127,21 +88,7 @@ export class ProductService {
         );
       }
 
-      // Convert Decimal to number for price and dimensions
-      const processedProduct = {
-        ...product,
-        price: product.price ? Number(product.price) : 0,
-        variants: product.variants.map((variant) => ({
-          ...variant,
-          price: variant.price ? Number(variant.price) : 0,
-          weight: variant.weight ? Number(variant.weight) : null,
-          length: variant.length ? Number(variant.length) : null,
-          width: variant.width ? Number(variant.width) : null,
-          height: variant.height ? Number(variant.height) : null,
-        })),
-      };
-
-      return ResponseHandler.success(processedProduct);
+      return ResponseHandler.success(product);
     } catch (error) {
       if (
         error instanceof Error &&
@@ -149,7 +96,6 @@ export class ProductService {
         "message" in error &&
         "statusCode" in error
       ) {
-        // This is already an AppError from validation
         return ResponseHandler.error(error as AppError);
       }
       if (
@@ -164,13 +110,11 @@ export class ProductService {
 
   async checkProductStock(variantId: string, quantity: number) {
     try {
-      // Validate inputs using Zod
       const validatedBody = ProductValidation.validateCheckStock({
         variantId,
         quantity,
       });
 
-      // Check stock from repository
       const result = await this.productRepository.checkStock(
         validatedBody.variantId,
         validatedBody.quantity
@@ -184,7 +128,6 @@ export class ProductService {
         "message" in error &&
         "statusCode" in error
       ) {
-        // This is already an AppError from validation
         return ResponseHandler.error(error as AppError);
       }
       if (

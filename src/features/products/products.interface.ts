@@ -1,11 +1,11 @@
-// Product interfaces and types
+import { Decimal } from "@prisma/client/runtime/library";
 
 export interface Product {
   id: string;
   name: string;
   slug: string;
   description: string | null;
-  price: number;
+  price: Decimal;
   categoryId: string;
   published: boolean;
   createdAt: Date;
@@ -29,28 +29,26 @@ export interface ProductVariant {
   productId: string;
   title: string;
   sku: string;
-  price: number;
+  price: Decimal;
   stock: number;
   reserved: number;
-  weight?: number | null;
-  length?: number | null;
-  width?: number | null;
-  height?: number | null;
+  weight?: Decimal | null;
+  length?: Decimal | null;
+  width?: Decimal | null;
+  height?: Decimal | null;
 }
 
 export interface ProductMedia {
   id: string;
   productId: string;
   url: string;
-  type: 'IMAGE' | 'VIDEO';
+  type: "IMAGE" | "VIDEO";
   alt: string | null;
   position: number;
   createdAt: Date;
 }
 
-// Request/Response interfaces
-// GetProductsQuery is now defined in products.schema.ts using Zod
-export type { GetProductsQuery } from './products.schema';
+export type { GetProductsQuery } from "./products.schema";
 
 export interface GetProductsResponse {
   data: Product[];
@@ -68,7 +66,6 @@ export interface ProductResponse {
   data: Product;
 }
 
-// Error response interface
 export interface ErrorResponse {
   error: {
     code: string;

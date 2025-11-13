@@ -1,13 +1,17 @@
 // Product validation schemas using Zod
 import { z } from 'zod';
+import { Decimal } from "@prisma/client/runtime/library";
 
-// Base product schemas
+const decimalSchema = z.custom<Decimal>((val) => {
+  return val instanceof Decimal || typeof val === "object";
+});
+
 export const productSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1).max(255),
   slug: z.string().min(1).max(255),
   description: z.string().nullable(),
-  price: z.number().nonnegative(),
+  price: decimalSchema,
   categoryId: z.string().uuid(),
   published: z.boolean(),
   createdAt: z.date(),
@@ -28,34 +32,36 @@ export const productVariantSchema = z.object({
   productId: z.string().uuid(),
   title: z.string().min(1).max(255),
   sku: z.string().min(1).max(100),
-  price: z.number().nonnegative(),
+  price: decimalSchema,
   stock: z.number().int().nonnegative(),
   reserved: z.number().int().nonnegative(),
-  weight: z.number().positive().nullable().optional(),
-  length: z.number().positive().nullable().optional(),
-  width: z.number().positive().nullable().optional(),
-  height: z.number().positive().nullable().optional(),
+  weight: decimalSchema.nullable().optional(),
+  length: decimalSchema.nullable().optional(),
+  width: decimalSchema.nullable().optional(),
+  height: decimalSchema.nullable().optional(),
 });
 
 export const productMediaSchema = z.object({
   id: z.string().uuid(),
   productId: z.string().uuid(),
   url: z.string().url(),
-  type: z.enum(['IMAGE', 'VIDEO']),
+  type: z.enum(["IMAGE", "VIDEO"]),
   alt: z.string().nullable(),
   position: z.number().int().nonnegative(),
   createdAt: z.date(),
 });
 
-// Query parameter schemas
 export const getProductsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).optional().default(1),
   limit: z.coerce.number().int().min(1).max(100).optional().default(20),
   q: z.string().trim().optional(),
   category: z.string().trim().optional(),
   published: z.coerce.boolean().optional().default(true),
-  sortBy: z.enum(['name', 'price', 'createdAt', 'updatedAt']).optional().default('createdAt'),
-  sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
+  sortBy: z
+    .enum(["name", "price", "createdAt", "updatedAt"])
+    .optional()
+    .default("createdAt"),
+  sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
 });
 
 export const getProductByIdSchema = z.object({
@@ -71,7 +77,6 @@ export const checkStockSchema = z.object({
   quantity: z.coerce.number().int().min(1),
 });
 
-// Response schemas
 export const productResponseSchema = z.object({
   data: productSchema.extend({
     category: categorySchema.optional(),

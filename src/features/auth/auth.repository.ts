@@ -9,11 +9,7 @@ export class AuthRepository {
     });
   }
 
-  async createUser(data: {
-    email: string;
-    password: string;
-    name?: string;
-  }) {
+  async createUser(data: { email: string; password: string; name?: string }) {
     return await this.prisma.user.create({
       data: {
         email: data.email,
@@ -77,6 +73,20 @@ export class AuthRepository {
     return await this.prisma.refreshToken.deleteMany({
       where: {
         userId: userId,
+      },
+    });
+  }
+
+  async findStoresByUserId(userId: string) {
+    return await this.prisma.storeMembership.findMany({
+      where: {
+        userId,
+      },
+      include: {
+        store: true,
+      },
+      orderBy: {
+        createdAt: "asc",
       },
     });
   }

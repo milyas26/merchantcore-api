@@ -127,6 +127,7 @@ export class AuthController {
             accessToken,
             refreshToken: tokens.refreshToken,
           },
+          currentStore: result.currentStore || null,
         })
       );
     } catch (error) {

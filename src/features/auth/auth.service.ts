@@ -106,6 +106,9 @@ export class AuthService {
           },
         };
       }
+      const userStores = await this.authRepository.findStoresByUserId(user.id);
+
+      const currentStore = userStores.length > 0 ? userStores[0] : null;
 
       return {
         user: {
@@ -118,6 +121,15 @@ export class AuthService {
           accessToken: "",
           refreshToken: "",
         },
+        currentStore: currentStore
+          ? {
+              id: currentStore.store.id,
+              name: currentStore.store.name,
+              slug: currentStore.store.slug,
+              description: currentStore.store.description,
+              role: currentStore.role,
+            }
+          : null,
       };
     } catch (error) {
       console.error("Login error:", error);
@@ -189,6 +201,14 @@ export class AuthService {
         };
       }
 
+      // Fetch user's stores and memberships to get current store
+      const userStores = await this.authRepository.findStoresByUserId(
+        refreshToken.user.id
+      );
+
+      // Get the first store (or null if no stores)
+      const currentStore = userStores.length > 0 ? userStores[0] : null;
+
       return {
         user: {
           id: refreshToken.user.id,
@@ -200,6 +220,15 @@ export class AuthService {
           accessToken: "",
           refreshToken: "",
         },
+        currentStore: currentStore
+          ? {
+              id: currentStore.store.id,
+              name: currentStore.store.name,
+              slug: currentStore.store.slug,
+              description: currentStore.store.description,
+              role: currentStore.role,
+            }
+          : null,
       };
     } catch (error) {
       console.error("Refresh token error:", error);

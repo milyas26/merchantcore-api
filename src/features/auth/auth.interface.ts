@@ -36,6 +36,13 @@ export interface AuthResponse {
     accessToken: string;
     refreshToken: string;
   };
+  currentStore?: {
+    id: string;
+    name: string;
+    slug: string;
+    description: string | null;
+    role: string;
+  } | null;
 }
 
 export interface TokenPayload {

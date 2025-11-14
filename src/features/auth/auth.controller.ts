@@ -70,7 +70,13 @@ export class AuthController {
       const accessToken = await reply.jwtSign({
         userId: result.user.id,
         email: result.user.email,
-        role: result.user.role,
+        currentStore: result.currentStore
+          ? {
+              id: result.currentStore.id,
+              slug: result.currentStore.slug,
+              role: result.currentStore.role,
+            }
+          : null,
       });
 
       return reply.code(201).send(
@@ -96,7 +102,6 @@ export class AuthController {
     reply: FastifyReply
   ) {
     try {
-      // Validate request body
       const validatedData = this.validateRequest<LoginBody>(
         loginSchema,
         request.body
@@ -110,14 +115,18 @@ export class AuthController {
           .send(ResponseHandler.error(result.error));
       }
 
-      // Generate tokens using Fastify JWT
       const tokens = await this.authService.generateTokens(result.user.id);
 
-      // Generate access token with JWT
       const accessToken = await reply.jwtSign({
         userId: result.user.id,
         email: result.user.email,
-        role: result.user.role,
+        currentStore: result.currentStore
+          ? {
+              id: result.currentStore.id,
+              slug: result.currentStore.slug,
+              role: result.currentStore.role,
+            }
+          : null,
       });
 
       return reply.code(200).send(

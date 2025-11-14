@@ -83,4 +83,39 @@ export class StoresController {
       });
     }
   }
+
+  async switchStore(
+    request: AuthenticatedRequest<{ Body: { storeId: string } }>,
+    reply: FastifyReply
+  ) {
+    try {
+      const { storeId } = request.body;
+      const userId = request.user.userId;
+
+      if (!storeId) {
+        throw ErrorHandler.validationError("Store id is required");
+      }
+
+      const currentStore = await this.storesService.switchStore(
+        userId,
+        storeId
+      );
+
+      return reply.send({
+        success: true,
+        data: {
+          currentStore,
+        },
+      });
+    } catch (error) {
+      const appError = error as AppError;
+      return reply.code(appError.statusCode || 500).send({
+        success: false,
+        error: {
+          code: appError.code,
+          message: appError.message,
+        },
+      });
+    }
+  }
 }

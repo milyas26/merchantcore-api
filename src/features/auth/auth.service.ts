@@ -106,9 +106,9 @@ export class AuthService {
           },
         };
       }
-      const userStores = await this.authRepository.findStoresByUserId(user.id);
-
-      const currentStore = userStores.length > 0 ? userStores[0] : null;
+      const currentStore = await this.authRepository.findFirstStoreByUserId(
+        user.id
+      );
 
       return {
         user: {

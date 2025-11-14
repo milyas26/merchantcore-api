@@ -90,4 +90,18 @@ export class AuthRepository {
       },
     });
   }
+
+  async findFirstStoreByUserId(userId: string) {
+    return await this.prisma.storeMembership.findFirst({
+      where: {
+        userId,
+      },
+      include: {
+        store: true,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
+  }
 }

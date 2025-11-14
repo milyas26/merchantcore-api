@@ -103,6 +103,59 @@ export class StoresService {
     }
   }
 
+  async switchStore(userId: string, storeId: string): Promise<{
+    id: string;
+    name: string;
+    slug: string;
+    description: string | null;
+    role: string;
+  }> {
+    try {
+      // Check if the user has access to the store
+      const membership = await this.storesRepository.findMembershipByUserIdAndStoreId(
+        userId,
+        storeId
+      );
+
+      if (!membership) {
+        throw {
+          code: "STORE_ACCESS_DENIED",
+          message: "You don't have access to this store",
+          statusCode: 403,
+        } as AppError;
+      }
+
+      // Get the store details
+      const store = await this.storesRepository.findStoreById(storeId);
+
+      if (!store) {
+        throw {
+          code: "STORE_NOT_FOUND",
+          message: "Store not found",
+          statusCode: 404,
+        } as AppError;
+      }
+
+      return {
+        id: store.id,
+        name: store.name,
+        slug: store.slug,
+        description: store.description,
+        role: membership.role,
+      };
+    } catch (error) {
+      console.error("Switch store error:", error);
+      if (error && typeof error === 'object' && 'statusCode' in error) {
+        throw error;
+      }
+      throw {
+        code: "SWITCH_STORE_FAILED",
+        message: "Failed to switch store",
+        statusCode: 500,
+      } as AppError;
+    }
+  }
+
   private generateSlug(name: string): string {
     return name
       .toLowerCase()

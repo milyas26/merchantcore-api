@@ -30,4 +30,18 @@ export async function storesRoutes(fastify: FastifyInstance) {
       );
     }
   );
+
+  // switch store
+  fastify.post(
+    "/stores/switch",
+    {
+      preHandler: [fastify.authenticate],
+    },
+    async (request, reply) => {
+      await storesController.switchStore(
+        request as AuthenticatedRequest<{ Body: { storeId: string } }>,
+        reply
+      );
+    }
+  );
 }

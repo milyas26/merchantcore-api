@@ -27,6 +27,30 @@ export class StoresRepository {
     return stores as (Store & { memberships: StoreMembership[] })[];
   }
 
+  async findMembershipByUserIdAndStoreId(
+    userId: string,
+    storeId: string
+  ): Promise<StoreMembership | null> {
+    const membership = await this.prisma.storeMembership.findFirst({
+      where: {
+        userId,
+        storeId,
+      },
+    });
+
+    return membership as StoreMembership | null;
+  }
+
+  async findStoreById(storeId: string): Promise<Store | null> {
+    const store = await this.prisma.store.findUnique({
+      where: {
+        id: storeId,
+      },
+    });
+
+    return store as Store | null;
+  }
+
   async createStoreWithMembership(data: {
     name: string;
     slug: string;

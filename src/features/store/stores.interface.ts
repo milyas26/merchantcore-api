@@ -25,7 +25,6 @@ export enum MembershipRole {
 }
 
 export interface CreateStoreBody {
-  slug: string;
   name: string;
   description?: string;
 }

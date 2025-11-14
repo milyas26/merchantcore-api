@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import { FastifyInstance, FastifyRequest, FastifyReply, RouteGenericInterface } from "fastify";
 import fp from "fastify-plugin";
 import { AppError } from "@/utils";
 
-export interface AuthenticatedRequest extends FastifyRequest {
+export interface AuthenticatedRequest<T extends RouteGenericInterface = RouteGenericInterface> extends FastifyRequest<T> {
   user: {
     userId: string;
     email: string;

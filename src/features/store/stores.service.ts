@@ -157,10 +157,15 @@ export class StoresService {
   }
 
   private generateSlug(name: string): string {
-    return name
+    const baseSlug = name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "")
-      .substring(0, 50);
+      .substring(0, 40); // Kurangi menjadi 40 untuk memberi ruang untuk random string
+
+    // Generate 5 random alphanumeric characters
+    const randomChars = Math.random().toString(36).substring(2, 7);
+
+    return `${baseSlug}-${randomChars}`;
   }
 }

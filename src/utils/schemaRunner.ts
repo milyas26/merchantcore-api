@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 function assertValidSchema(schema: string) {
-  if (!/^[a-z0-9_]+$/.test(schema)) throw new Error("Invalid schema");
+  if (!/^[a-z0-9_-]+$/.test(schema)) throw new Error("Invalid schema");
 }
 
 export async function runInSchema<T>(

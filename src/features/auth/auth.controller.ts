@@ -250,4 +250,27 @@ export class AuthController {
         .send(ResponseHandler.error(appError));
     }
   }
+
+  async logout(userId: string, reply: FastifyReply) {
+    try {
+      const result = await this.authService.logout(userId);
+
+      if ("error" in result) {
+        return reply
+          .code(result.error.statusCode)
+          .send(ResponseHandler.error(result.error));
+      }
+
+      return reply.code(200).send(
+        ResponseHandler.success({
+          message: "Logout successful",
+        })
+      );
+    } catch (error) {
+      const appError = ErrorHandler.handleUnknownError(error);
+      return reply
+        .code(appError.statusCode)
+        .send(ResponseHandler.error(appError));
+    }
+  }
 }

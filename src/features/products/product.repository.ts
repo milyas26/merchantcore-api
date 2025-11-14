@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { GetProductsQuery } from "./products.interface";
 import { StorePrismaClient } from "../../../packages/libs/db/getPrismaForSchema";
 

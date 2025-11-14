@@ -10,18 +10,22 @@ import {
 import { AppError } from "../../utils";
 import crypto from "crypto";
 import { PublicPrismaClient } from "../../../packages/libs/db/getPrismaForSchema";
+import { AuthRepository } from "./auth.repository";
 
 export class AuthService {
-  constructor(private prisma: PublicPrismaClient) {}
+  private authRepository: AuthRepository;
+
+  constructor(prisma: PublicPrismaClient) {
+    this.authRepository = new AuthRepository(prisma);
+  }
 
   async register(
     data: RegisterBody
   ): Promise<AuthResponse | { error: AppError }> {
     try {
-      // Check if user already exists
-      const existingUser = await this.prisma.user.findUnique({
-        where: { email: data.email },
-      });
+      const existingUser = await this.authRepository.findUserByEmail(
+        data.email
+      );
 
       if (existingUser) {
         return {
@@ -33,29 +37,24 @@ export class AuthService {
         };
       }
 
-      // Hash password
       const hashedPassword = await bcrypt.hash(data.password, 10);
 
-      // Create user
-      const user = await this.prisma.user.create({
-        data: {
-          email: data.email,
-          password: hashedPassword,
-          name: data.name,
-        },
+      const user = await this.authRepository.createUser({
+        email: data.email,
+        password: hashedPassword,
+        name: data.name,
       });
 
-      // Generate tokens (will be implemented in controller with JWT)
       return {
         user: {
           id: user.id,
           email: user.email,
-          name: user.name || "", // Handle null name
-          role: "USER", // Default role since User model doesn't have role field
+          name: user.name || "",
+          role: "USER",
         },
         tokens: {
-          accessToken: "", // Will be set by controller
-          refreshToken: "", // Will be set by controller
+          accessToken: "",
+          refreshToken: "",
         },
       };
     } catch (error) {
@@ -72,10 +71,7 @@ export class AuthService {
 
   async login(data: LoginBody): Promise<AuthResponse | { error: AppError }> {
     try {
-      // Find user
-      const user = await this.prisma.user.findUnique({
-        where: { email: data.email },
-      });
+      const user = await this.authRepository.findUserByEmail(data.email);
 
       if (!user) {
         return {
@@ -87,7 +83,6 @@ export class AuthService {
         };
       }
 
-      // Check password
       const isValidPassword = await bcrypt.compare(
         data.password,
         user.password
@@ -102,7 +97,6 @@ export class AuthService {
         };
       }
 
-      // Check if user is active
       if (!user.isActive) {
         return {
           error: {
@@ -113,17 +107,16 @@ export class AuthService {
         };
       }
 
-      // Generate tokens (will be implemented in controller with JWT)
       return {
         user: {
           id: user.id,
           email: user.email,
-          name: user.name || "", // Handle null name
-          role: "USER", // Default role since User model doesn't have role field
+          name: user.name || "",
+          role: "USER",
         },
         tokens: {
-          accessToken: "", // Will be set by controller
-          refreshToken: "", // Will be set by controller
+          accessToken: "",
+          refreshToken: "",
         },
       };
     } catch (error) {
@@ -142,17 +135,12 @@ export class AuthService {
     data: ResetPasswordBody
   ): Promise<{ success: boolean } | { error: AppError }> {
     try {
-      const user = await this.prisma.user.findUnique({
-        where: { email: data.email },
-      });
+      const user = await this.authRepository.findUserByEmail(data.email);
 
       if (!user) {
-        // Don't reveal if user exists or not for security
         return { success: true };
       }
 
-      // For now, just return success (password reset functionality would need to be implemented)
-      // This is a simplified version since the User model doesn't have reset token fields
       return { success: true };
     } catch (error) {
       console.error("Reset password error:", error);
@@ -170,8 +158,6 @@ export class AuthService {
     _data: ConfirmResetPasswordBody
   ): Promise<{ success: boolean } | { error: AppError }> {
     try {
-      // Simplified version - password reset confirmation would need proper implementation
-      // For now, return success to avoid errors
       return { success: true };
     } catch (error) {
       console.error("Confirm reset password error:", error);
@@ -189,18 +175,9 @@ export class AuthService {
     data: RefreshTokenBody
   ): Promise<AuthResponse | { error: AppError }> {
     try {
-      // Find refresh token and associated user
-      const refreshToken = await this.prisma.refreshToken.findFirst({
-        where: {
-          token: data.refreshToken,
-          expiresAt: {
-            gt: new Date(),
-          },
-        },
-        include: {
-          user: true,
-        },
-      });
+      const refreshToken = await this.authRepository.findRefreshTokenWithUser(
+        data.refreshToken
+      );
 
       if (!refreshToken || !refreshToken.user) {
         return {
@@ -216,12 +193,12 @@ export class AuthService {
         user: {
           id: refreshToken.user.id,
           email: refreshToken.user.email,
-          name: refreshToken.user.name || "", // Handle null name
-          role: "USER", // Default role since User model doesn't have role field
+          name: refreshToken.user.name || "",
+          role: "USER",
         },
         tokens: {
-          accessToken: "", // Will be set by controller
-          refreshToken: "", // Will be set by controller
+          accessToken: "",
+          refreshToken: "",
         },
       };
     } catch (error) {
@@ -239,22 +216,36 @@ export class AuthService {
   async generateTokens(
     userId: string
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    // Generate refresh token (7 days)
     const refreshToken = crypto.randomBytes(32).toString("hex");
     const refreshTokenExpiresAt = new Date(
       Date.now() + 7 * 24 * 60 * 60 * 1000
     ); // 7 days
 
-    // Store refresh token in database using RefreshToken model
-    await this.prisma.refreshToken.create({
-      data: {
-        token: refreshToken,
-        userId: userId,
-        expiresAt: refreshTokenExpiresAt,
-      },
+    await this.authRepository.createRefreshToken({
+      token: refreshToken,
+      userId: userId,
+      expiresAt: refreshTokenExpiresAt,
     });
 
-    // Return tokens - access token will be generated by controller using Fastify JWT
     return { accessToken: "", refreshToken };
+  }
+
+  async logout(
+    userId: string
+  ): Promise<{ success: boolean } | { error: AppError }> {
+    try {
+      await this.authRepository.deleteRefreshTokensByUserId(userId);
+
+      return { success: true };
+    } catch (error) {
+      console.error("Logout error:", error);
+      return {
+        error: {
+          code: "LOGOUT_FAILED",
+          message: "Failed to logout",
+          statusCode: 500,
+        },
+      };
+    }
   }
 }

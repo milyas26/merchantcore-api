@@ -1,12 +1,13 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { AuthController } from "./auth.controller";
 import { getPrismaPublic } from "../../../packages/libs/db/getPrismaForSchema";
-import { 
-  RegisterBody, 
-  LoginBody, 
-  ResetPasswordBody, 
-  ConfirmResetPasswordBody, 
-  RefreshTokenBody 
+import {
+  RegisterBody,
+  LoginBody,
+  ResetPasswordBody,
+  ConfirmResetPasswordBody,
+  RefreshTokenBody,
+  AuthenticatedRequest,
 } from "./auth.interface";
 
 export default async function authRoutes(fastify: FastifyInstance) {
@@ -65,6 +66,20 @@ export default async function authRoutes(fastify: FastifyInstance) {
       reply: FastifyReply
     ) => {
       return authController.refreshToken(request, reply);
+    }
+  );
+
+  // DELETE /api/auth/logout - Logout user (requires authentication)
+  fastify.delete(
+    "/logout",
+    {
+      preHandler: async (request, reply) => {
+        await fastify.authenticate(request as AuthenticatedRequest, reply);
+      },
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const authenticatedRequest = request as AuthenticatedRequest;
+      return authController.logout(authenticatedRequest.user.userId, reply);
     }
   );
 }

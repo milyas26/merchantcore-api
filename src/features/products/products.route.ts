@@ -1,10 +1,13 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { ProductController } from "./products.controller";
-import { PrismaClient } from "@prisma/client";
+import { getPrismaForSchema } from "../../../packages/libs/db/getPrismaForSchema";
 import { GetProductsQuery } from "./products.interface";
 
 export default async function productRoutes(fastify: FastifyInstance) {
-  const prisma = new PrismaClient();
+  // TODO: Make store schema dynamic based on request context (subdomain, header, etc.)
+  // For now, using a placeholder store schema
+  const storeSchema = "store_template";
+  const prisma = getPrismaForSchema(storeSchema);
   const productController = new ProductController(prisma);
 
   // GET /api/products - Get all products with pagination, search, and filtering

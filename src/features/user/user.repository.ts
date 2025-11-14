@@ -1,41 +1,55 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import { PublicPrismaClient } from "../../../packages/libs/db/getPrismaForSchema";
 import { UserProfileResponse } from "./user.interface";
 
 export class UserRepository {
-  constructor(private prisma: PrismaClient) {}
+  constructor(private prisma: PublicPrismaClient) {}
 
   async findById(id: string): Promise<UserProfileResponse | null> {
-    return await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { id },
       select: {
         id: true,
         email: true,
         name: true,
-        role: true,
         isActive: true,
         createdAt: true,
         updatedAt: true
       }
     });
+    
+    if (!user) return null;
+    
+    return {
+      ...user,
+      name: user.name || "",
+      role: "USER" // Default role since User model doesn't have role field
+    };
   }
 
   async findByEmail(email: string): Promise<UserProfileResponse | null> {
-    return await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { email },
       select: {
         id: true,
         email: true,
         name: true,
-        role: true,
         isActive: true,
         createdAt: true,
         updatedAt: true
       }
     });
+    
+    if (!user) return null;
+    
+    return {
+      ...user,
+      name: user.name || "",
+      role: "USER" // Default role since User model doesn't have role field
+    };
   }
 
   async findByEmailExcludeId(email: string, excludeId: string): Promise<UserProfileResponse | null> {
-    return await this.prisma.user.findFirst({
+    const user = await this.prisma.user.findFirst({
       where: {
         email: email,
         NOT: { id: excludeId }
@@ -44,44 +58,62 @@ export class UserRepository {
         id: true,
         email: true,
         name: true,
-        role: true,
         isActive: true,
         createdAt: true,
         updatedAt: true
       }
     });
+    
+    if (!user) return null;
+    
+    return {
+      ...user,
+      name: user.name || "",
+      role: "USER" // Default role since User model doesn't have role field
+    };
   }
 
-  async update(id: string, data: Prisma.UserUpdateInput): Promise<UserProfileResponse> {
-    return await this.prisma.user.update({
+  async update(id: string, data: { email?: string; name?: string | null; isActive?: boolean }): Promise<UserProfileResponse> {
+    const user = await this.prisma.user.update({
       where: { id },
       data,
       select: {
         id: true,
         email: true,
         name: true,
-        role: true,
         isActive: true,
         createdAt: true,
         updatedAt: true
       }
     });
+    
+    return {
+      ...user,
+      name: user.name || "",
+      role: "USER" // Default role since User model doesn't have role field
+    };
   }
 
   async findByIdWithPassword(id: string) {
-    return await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { id },
       select: {
         id: true,
         email: true,
         name: true,
         password: true,
-        role: true,
         isActive: true,
         createdAt: true,
         updatedAt: true
       }
     });
+    
+    if (!user) return null;
+    
+    return {
+      ...user,
+      name: user.name || ""
+    };
   }
 
   async updatePassword(id: string, hashedPassword: string): Promise<void> {

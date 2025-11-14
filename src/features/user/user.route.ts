@@ -1,11 +1,11 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { UserController } from "./user.controller";
-import { PrismaClient } from "@prisma/client";
+import { getPrismaPublic } from "../../../packages/libs/db/getPrismaForSchema";
 import { UpdateUserProfileBody, UpdatePasswordBody } from "./user.interface";
 import { AuthenticatedRequest } from "../auth/auth.interface";
 
 export default async function userRoutes(fastify: FastifyInstance) {
-  const prisma = new PrismaClient();
+  const prisma = getPrismaPublic();
   const userController = new UserController(prisma);
 
   // Add authentication hook for all routes in this plugin

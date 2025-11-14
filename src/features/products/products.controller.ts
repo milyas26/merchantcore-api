@@ -1,14 +1,14 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { ProductService } from './products.service';
 import { GetProductsQuery } from './products.interface';
-import { PrismaClient } from '@prisma/client';
 import { ErrorHandler, ResponseHandler } from '../../utils';
 import { AppError } from '../../utils';
+import { StorePrismaClient } from '../../../packages/libs/db/getPrismaForSchema';
 
 export class ProductController {
   private productService: ProductService;
 
-  constructor(prisma: PrismaClient) {
+  constructor(prisma: StorePrismaClient) {
     this.productService = new ProductService(prisma);
   }
 

@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { AuthController } from "./auth.controller";
-import { PrismaClient } from "@prisma/client";
+import { getPrismaPublic } from "../../../packages/libs/db/getPrismaForSchema";
 import { 
   RegisterBody, 
   LoginBody, 
@@ -10,7 +10,7 @@ import {
 } from "./auth.interface";
 
 export default async function authRoutes(fastify: FastifyInstance) {
-  const prisma = new PrismaClient();
+  const prisma = getPrismaPublic();
   const authController = new AuthController(prisma);
 
   // POST /api/auth/register - Register new user

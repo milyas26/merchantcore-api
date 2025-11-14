@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { PrismaClient } from "@prisma/client";
+import { PublicPrismaClient } from "../../../packages/libs/db/getPrismaForSchema";
 import { UserRepository } from "./user.repository";
 import { UpdateUserProfileBody, UpdatePasswordBody } from "./user.interface";
 import { AppError, ErrorHandler, ResponseHandler } from "../../utils";
@@ -9,7 +9,7 @@ import { UserValidation } from "./user.validation";
 export class UserService {
   private userRepository: UserRepository;
 
-  constructor(prisma: PrismaClient) {
+  constructor(prisma: PublicPrismaClient) {
     this.userRepository = new UserRepository(prisma);
   }
 

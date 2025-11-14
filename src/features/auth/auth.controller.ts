@@ -7,7 +7,6 @@ import {
   ConfirmResetPasswordBody,
   RefreshTokenBody,
 } from "./auth.interface";
-import { PrismaClient } from "@prisma/client";
 import { ErrorHandler, ResponseHandler } from "../../utils";
 import { z, ZodError } from "zod";
 import {
@@ -17,11 +16,12 @@ import {
   confirmResetPasswordSchema,
   refreshTokenSchema,
 } from "./auth.validation";
+import { PublicPrismaClient } from "../../../packages/libs/db/getPrismaForSchema";
 
 export class AuthController {
   private authService: AuthService;
 
-  constructor(prisma: PrismaClient) {
+  constructor(prisma: PublicPrismaClient) {
     this.authService = new AuthService(prisma);
   }
 
@@ -157,13 +157,11 @@ export class AuthController {
           .send(ResponseHandler.error(result.error));
       }
 
-      return reply
-        .code(200)
-        .send(
-          ResponseHandler.success({
-            message: "Password reset instructions sent to email",
-          })
-        );
+      return reply.code(200).send(
+        ResponseHandler.success({
+          message: "Password reset instructions sent to email",
+        })
+      );
     } catch (error) {
       request.log.error(error);
       const appError = ErrorHandler.handleUnknownError(error);

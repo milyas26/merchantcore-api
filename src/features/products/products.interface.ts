@@ -6,14 +6,22 @@ export interface Product {
   name: string;
   slug: string;
   description: string | null;
-  price: Decimal;
+  basePrice: Decimal;
   categoryId: string;
-  published: boolean;
+  sku: string | null;
+  compareAtPrice: Decimal | null;
+  cost: Decimal | null;
+  weight: Decimal | null;
+  isActive: boolean;
+  isFeatured: boolean;
+  trackInventory: boolean;
+  seoTitle: string | null;
+  seoDescription: string | null;
   createdAt: Date;
   updatedAt: Date;
   category?: Category;
   variants?: ProductVariant[];
-  media?: ProductMedia[];
+  images?: ProductMedia[];
 }
 
 export interface Category {
@@ -31,19 +39,26 @@ export interface ProductVariant {
   title: string;
   sku: string;
   price: Decimal;
-  stock: number;
-  reserved: number;
-  weight?: Decimal | null;
-  length?: Decimal | null;
-  width?: Decimal | null;
-  height?: Decimal | null;
+  compareAtPrice: Decimal | null;
+  cost: Decimal | null;
+  weight: Decimal | null;
+  barcode: string | null;
+  image: string | null;
+  position: number;
+  isActive: boolean;
+  inventory?: {
+    quantity: number;
+    reserved: number;
+    lowStockThreshold: number | null;
+  } | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface ProductMedia {
   id: string;
   productId: string;
   url: string;
-  type: "IMAGE" | "VIDEO";
   alt: string | null;
   position: number;
   createdAt: Date;

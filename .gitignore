@@ -82,7 +82,6 @@ dist
 
 # Gatsby files
 .cache/
-public
 
 # Storybook build outputs
 .out
@@ -179,6 +178,8 @@ coverage/
 
 # Profiling files
 *.prof
+
+generated
 
 # Dependency lock files (choose one)
 # Comment out the one you're not using

@@ -1,13 +1,13 @@
 import { FastifyReply } from 'fastify';
 import { UserService } from './user.service';
 import { UpdateUserProfileBody, UpdatePasswordBody } from './user.interface';
-import { PrismaClient } from '@prisma/client';
+import { PublicPrismaClient } from '../../../packages/libs/db/getPrismaForSchema';
 import { AuthenticatedRequest } from '../auth/auth.interface';
 
 export class UserController {
   private userService: UserService;
 
-  constructor(prisma: PrismaClient) {
+  constructor(prisma: PublicPrismaClient) {
     this.userService = new UserService(prisma);
   }
 

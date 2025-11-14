@@ -1,8 +1,8 @@
-import { Prisma, PrismaClient } from "@prisma/client";
 import { GetProductsQuery } from "./products.interface";
+import { StorePrismaClient } from "../../../packages/libs/db/getPrismaForSchema";
 
 export class ProductRepository {
-  constructor(private prisma: PrismaClient) {}
+  constructor(private prisma: StorePrismaClient) {}
 
   async findMany(query: GetProductsQuery) {
     const {
@@ -18,8 +18,8 @@ export class ProductRepository {
     const skip = (page - 1) * limit;
 
     // Build where clause
-    const where: Prisma.ProductWhereInput = {
-      published,
+    const where: any = {
+      isActive: published,
     };
 
     if (q) {
@@ -64,20 +64,29 @@ export class ProductRepository {
             title: true,
             sku: true,
             price: true,
-            stock: true,
-            reserved: true,
+            compareAtPrice: true,
+            cost: true,
             weight: true,
-            length: true,
-            width: true,
-            height: true,
+            barcode: true,
+            image: true,
+            position: true,
+            isActive: true,
+            createdAt: true,
+            updatedAt: true,
+            inventory: {
+              select: {
+                quantity: true,
+                reserved: true,
+                lowStockThreshold: true,
+              },
+            },
           },
         },
-        media: {
+        images: {
           select: {
             id: true,
             productId: true,
             url: true,
-            type: true,
             alt: true,
             position: true,
             createdAt: true,
@@ -123,20 +132,21 @@ export class ProductRepository {
             title: true,
             sku: true,
             price: true,
-            stock: true,
-            reserved: true,
+            compareAtPrice: true,
+            cost: true,
             weight: true,
-            length: true,
-            width: true,
-            height: true,
+            image: true,
+            position: true,
+            isActive: true,
+            createdAt: true,
+            updatedAt: true,
           },
         },
-        media: {
+        images: {
           select: {
             id: true,
             productId: true,
             url: true,
-            type: true,
             alt: true,
             position: true,
             createdAt: true,
@@ -170,19 +180,21 @@ export class ProductRepository {
             title: true,
             sku: true,
             price: true,
-            stock: true,
-            reserved: true,
+            compareAtPrice: true,
+            cost: true,
             weight: true,
-            length: true,
-            width: true,
-            height: true,
+            image: true,
+            position: true,
+            isActive: true,
+            createdAt: true,
+            updatedAt: true,
           },
         },
-        media: {
+        images: {
           select: {
             id: true,
+            productId: true,
             url: true,
-            type: true,
             alt: true,
             position: true,
             createdAt: true,
@@ -196,20 +208,20 @@ export class ProductRepository {
   }
 
   async checkStock(variantId: string, quantity: number) {
-    const variant = await this.prisma.productVariant.findUnique({
-      where: { id: variantId },
+    const inventory = await this.prisma.inventory.findUnique({
+      where: { variantId: variantId },
       select: {
         id: true,
-        stock: true,
+        quantity: true,
         reserved: true,
       },
     });
 
-    if (!variant) {
-      return { available: false, message: "Variant not found" };
+    if (!inventory) {
+      return { available: false, message: "Inventory not found for variant" };
     }
 
-    const availableStock = variant.stock - variant.reserved;
+    const availableStock = inventory.quantity - inventory.reserved;
 
     if (availableStock < quantity) {
       return {
@@ -228,8 +240,8 @@ export class ProductRepository {
   }
 
   async reserveStock(variantId: string, quantity: number) {
-    return await this.prisma.productVariant.update({
-      where: { id: variantId },
+    return await this.prisma.inventory.update({
+      where: { variantId: variantId },
       data: {
         reserved: {
           increment: quantity,
@@ -239,8 +251,8 @@ export class ProductRepository {
   }
 
   async releaseStock(variantId: string, quantity: number) {
-    return await this.prisma.productVariant.update({
-      where: { id: variantId },
+    return await this.prisma.inventory.update({
+      where: { variantId: variantId },
       data: {
         reserved: {
           decrement: quantity,
@@ -251,11 +263,11 @@ export class ProductRepository {
 
   async finalizeStock(variantId: string, quantity: number) {
     return await this.prisma.$transaction(async (tx) => {
-      // Decrease stock and reserved
-      const variant = await tx.productVariant.update({
-        where: { id: variantId },
+      // Decrease quantity and reserved in inventory
+      const inventory = await tx.inventory.update({
+        where: { variantId: variantId },
         data: {
-          stock: {
+          quantity: {
             decrement: quantity,
           },
           reserved: {
@@ -264,7 +276,7 @@ export class ProductRepository {
         },
       });
 
-      return variant;
+      return inventory;
     });
   }
 }

@@ -4,6 +4,7 @@ import { GetCategoriesQuery, CreateCategoryRequest } from "./categories.interfac
 import { ErrorHandler, ResponseHandler } from '../../utils';
 import { AppError } from '../../utils';
 import { PrismaClient } from "@prisma/client";
+import { getCategoriesQuerySchema } from "./categories.schema";
 
 export class CategoryController {
   private categoryService: CategoryService;
@@ -17,7 +18,24 @@ export class CategoryController {
     reply: FastifyReply
   ) {
     try {
-      const result = await this.categoryService.getCategories(request.query);
+      // Validate query parameters
+      const validationResult = getCategoriesQuerySchema.safeParse(
+        request.query
+      );
+      if (!validationResult.success) {
+        const appError: AppError = {
+          code: "VALIDATION_ERROR",
+          message: "Invalid query parameters",
+          statusCode: 400,
+          details: validationResult.error.flatten(),
+        };
+        return reply
+          .code(appError.statusCode)
+          .send(ResponseHandler.error(appError));
+      }
+
+      const validatedQuery = validationResult.data;
+      const result = await this.categoryService.getCategories(validatedQuery);
 
       if ("error" in result) {
         const error = result.error;

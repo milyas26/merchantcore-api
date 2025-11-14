@@ -1,17 +1,18 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { ProductController } from "./products.controller";
-import { getPrismaForSchema } from "../../../packages/libs/db/getPrismaForSchema";
 import { GetProductsQuery } from "./products.interface";
 import { AuthenticatedRequest } from "../../plugins/auth.plugin";
+import { runInSchema } from "../../utils/schemaRunner";
 
 export default async function productRoutes(fastify: FastifyInstance) {
-  // TODO: Make store schema dynamic based on request context (subdomain, header, etc.)
-  // For now, using a placeholder store schema
-  const storeSchema = "store_template";
-  const prisma = getPrismaForSchema(storeSchema);
-  const productController = new ProductController(prisma);
+  // Helper function to get store schema from request context
+  const getStoreSchema = (request: FastifyRequest): string => {
+    const authenticatedRequest = request as AuthenticatedRequest;
+    const currentStore = authenticatedRequest.user?.currentStore;
+    return currentStore?.slug || "store_template";
+  };
 
-  // Add authentication hook to all routes in this file
+  // Add authentication hook to all routes in this fil
   fastify.addHook(
     "preHandler",
     async (request: FastifyRequest, reply: FastifyReply) => {
@@ -26,7 +27,11 @@ export default async function productRoutes(fastify: FastifyInstance) {
       request: FastifyRequest<{ Querystring: GetProductsQuery }>,
       reply: FastifyReply
     ) => {
-      return productController.getProducts(request, reply);
+      const storeSchema = getStoreSchema(request);
+      return runInSchema(storeSchema, async (tx) => {
+        const productController = new ProductController(tx);
+        return productController.getProducts(request, reply);
+      });
     }
   );
 
@@ -37,7 +42,11 @@ export default async function productRoutes(fastify: FastifyInstance) {
       request: FastifyRequest<{ Params: { id: string } }>,
       reply: FastifyReply
     ) => {
-      return productController.getProductById(request, reply);
+      const storeSchema = getStoreSchema(request);
+      return runInSchema(storeSchema, async (tx) => {
+        const productController = new ProductController(tx);
+        return productController.getProductById(request, reply);
+      });
     }
   );
 
@@ -48,7 +57,11 @@ export default async function productRoutes(fastify: FastifyInstance) {
       request: FastifyRequest<{ Params: { slug: string } }>,
       reply: FastifyReply
     ) => {
-      return productController.getProductBySlug(request, reply);
+      const storeSchema = getStoreSchema(request);
+      return runInSchema(storeSchema, async (tx) => {
+        const productController = new ProductController(tx);
+        return productController.getProductBySlug(request, reply);
+      });
     }
   );
 
@@ -61,7 +74,11 @@ export default async function productRoutes(fastify: FastifyInstance) {
       }>,
       reply: FastifyReply
     ) => {
-      return productController.checkStock(request, reply);
+      const storeSchema = getStoreSchema(request);
+      return runInSchema(storeSchema, async (tx) => {
+        const productController = new ProductController(tx);
+        return productController.checkStock(request, reply);
+      });
     }
   );
 }

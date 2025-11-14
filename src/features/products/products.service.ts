@@ -7,12 +7,12 @@ import {
 import { AppError, ErrorHandler, ResponseHandler } from "../../utils";
 import { ProductValidation } from "./products.validation";
 import { GetProductsQuery } from "./products.schema";
-import { StorePrismaClient } from "../../../packages/libs/db/getPrismaForSchema";
+import { PrismaClient } from "@prisma/client";
 
 export class ProductService {
   private productRepository: ProductRepository;
 
-  constructor(prisma: StorePrismaClient) {
+  constructor(prisma: PrismaClient) {
     this.productRepository = new ProductRepository(prisma);
   }
 

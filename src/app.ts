@@ -5,6 +5,7 @@ import healthRoute from "./features/health/health.route";
 import productRoutes from "./features/products/products.route";
 import authRoutes from "./features/auth/auth.route";
 import userRoutes from "./features/user/user.route";
+import { storesRoutes } from "./features/store/stores.route";
 import fastifyCookie from "@fastify/cookie";
 import authPlugin from "./plugins/auth.plugin";
 
@@ -41,5 +42,6 @@ app.register(healthRoute, { prefix: "/api" });
 app.register(productRoutes, { prefix: "/api/products" });
 app.register(authRoutes, { prefix: "/api/auth" });
 app.register(userRoutes, { prefix: "/api/user" });
+app.register(storesRoutes, { prefix: "/api" });
 
 export default app;

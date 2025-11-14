@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { ProductController } from "./products.controller";
 import { getPrismaForSchema } from "../../../packages/libs/db/getPrismaForSchema";
 import { GetProductsQuery } from "./products.interface";
+import { AuthenticatedRequest } from "../../plugins/auth.plugin";
 
 export default async function productRoutes(fastify: FastifyInstance) {
   // TODO: Make store schema dynamic based on request context (subdomain, header, etc.)
@@ -9,6 +10,14 @@ export default async function productRoutes(fastify: FastifyInstance) {
   const storeSchema = "store_template";
   const prisma = getPrismaForSchema(storeSchema);
   const productController = new ProductController(prisma);
+
+  // Add authentication hook to all routes in this file
+  fastify.addHook(
+    "preHandler",
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      await fastify.authenticate(request as AuthenticatedRequest, reply);
+    }
+  );
 
   // GET /api/products - Get all products with pagination, search, and filtering
   fastify.get(

@@ -3,88 +3,96 @@ import { FastifyInstance, FastifyRequest, FastifyReply, RouteGenericInterface } 
 import fp from "fastify-plugin";
 import { AppError } from "@/utils";
 
-export interface AuthenticatedRequest<T extends RouteGenericInterface = RouteGenericInterface> extends FastifyRequest<T> {
+export interface AuthenticatedRequest<
+  T extends RouteGenericInterface = RouteGenericInterface
+> extends FastifyRequest<T> {
   user: {
     userId: string;
     email: string;
-    role: string;
+    currentStore: {
+      id: string;
+      slug: string;
+      role: string;
+    } | null;
   };
 }
 
 // Authentication plugin
 async function authPlugin(fastify: FastifyInstance) {
   // Add authenticate decorator to fastify instance
-  fastify.decorate("authenticate", async function authenticate(
-    request: AuthenticatedRequest,
-    reply: FastifyReply
-  ) {
-    try {
-      // Verify JWT token
-      await request.jwtVerify();
-      
-      // The decoded token is available in request.user
-      // Add user data to request object
-      request.user = {
-        userId: request.user.userId,
-        email: request.user.email,
-        role: request.user.role
-      };
-    } catch (error) {
-      const appError: AppError = {
-        code: "UNAUTHORIZED",
-        message: "Authentication required",
-        statusCode: 401
-      };
-      
-      return reply
-        .code(401)
-        .send({
-          success: false,
-          error: {
-            code: appError.code,
-            message: appError.message
-          }
-        });
-    }
-  });
-
-  // Add optional authentication decorator
-  fastify.decorate("authenticateOptional", async function authenticateOptional(
-    request: AuthenticatedRequest,
-    reply: FastifyReply
-  ) {
-    try {
-      // Try to verify JWT token, but don't fail if no token provided
-      if (request.headers.authorization) {
+  fastify.decorate(
+    "authenticate",
+    async function authenticate(
+      request: AuthenticatedRequest,
+      reply: FastifyReply
+    ) {
+      try {
+        // Verify JWT token
         await request.jwtVerify();
+
+        // The decoded token is available in request.user
+        // Add user data to request object
         request.user = {
           userId: request.user.userId,
           email: request.user.email,
-          role: request.user.role
+          currentStore: request.user.currentStore,
         };
-      }
-    } catch (error) {
-      // If token is provided but invalid, still return error
-      if (request.headers.authorization) {
+      } catch (error) {
         const appError: AppError = {
-          code: "INVALID_TOKEN",
-          message: "Invalid authentication token",
-          statusCode: 401
+          code: "UNAUTHORIZED",
+          message: "Authentication required",
+          statusCode: 401,
         };
-        
-        return reply
-          .code(401)
-          .send({
+
+        return reply.code(401).send({
+          success: false,
+          error: {
+            code: appError.code,
+            message: appError.message,
+          },
+        });
+      }
+    }
+  );
+
+  // Add optional authentication decorator
+  fastify.decorate(
+    "authenticateOptional",
+    async function authenticateOptional(
+      request: AuthenticatedRequest,
+      reply: FastifyReply
+    ) {
+      try {
+        // Try to verify JWT token, but don't fail if no token provided
+        if (request.headers.authorization) {
+          await request.jwtVerify();
+          request.user = {
+            userId: request.user.userId,
+            email: request.user.email,
+            currentStore: request.user.currentStore,
+          };
+        }
+      } catch (error) {
+        // If token is provided but invalid, still return error
+        if (request.headers.authorization) {
+          const appError: AppError = {
+            code: "INVALID_TOKEN",
+            message: "Invalid authentication token",
+            statusCode: 401,
+          };
+
+          return reply.code(401).send({
             success: false,
             error: {
               code: appError.code,
-              message: appError.message
-            }
+              message: appError.message,
+            },
           });
+        }
+        // If no token provided, continue without authentication
       }
-      // If no token provided, continue without authentication
     }
-  });
+  );
 }
 
 export default fp(authPlugin, {

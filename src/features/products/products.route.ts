@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { ProductController } from "./products.controller";
-import { GetProductsQuery } from "./products.interface";
+import { GetProductsQuery, CreateProductRequest } from "./products.interface";
 import { AuthenticatedRequest } from "../../plugins/auth.plugin";
 import { runInSchema } from "../../utils/schemaRunner";
 
@@ -9,7 +9,7 @@ export default async function productRoutes(fastify: FastifyInstance) {
   const getStoreSchema = (request: FastifyRequest): string => {
     const authenticatedRequest = request as AuthenticatedRequest;
     const currentStore = authenticatedRequest.user?.currentStore;
-    return currentStore?.slug || "store_template";
+    return currentStore?.slug || "";
   };
 
   // Add authentication hook to all routes in this fil
@@ -78,6 +78,23 @@ export default async function productRoutes(fastify: FastifyInstance) {
       return runInSchema(storeSchema, async (tx) => {
         const productController = new ProductController(tx);
         return productController.checkStock(request, reply);
+      });
+    }
+  );
+
+  // POST /api/products - Create new product
+  fastify.post(
+    "/",
+    async (
+      request: FastifyRequest<{
+        Body: CreateProductRequest;
+      }>,
+      reply: FastifyReply
+    ) => {
+      const storeSchema = getStoreSchema(request);
+      return runInSchema(storeSchema, async (tx) => {
+        const productController = new ProductController(tx);
+        return productController.createProduct(request, reply);
       });
     }
   );

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { GetProductsQuery } from "./products.interface";
-import { PrismaClient } from '@prisma/client';
+import { GetProductsQuery, CreateProductRequest } from "./products.interface";
+import { PrismaClient } from "@prisma/client";
 
 export class ProductRepository {
   constructor(private prisma: PrismaClient) {}
@@ -278,6 +278,204 @@ export class ProductRepository {
       });
 
       return inventory;
+    });
+  }
+
+  async findBySku(sku: string) {
+    return await this.prisma.product.findUnique({
+      where: { sku },
+      select: { id: true, sku: true },
+    });
+  }
+
+  async findVariantBySku(sku: string) {
+    return await this.prisma.productVariant.findUnique({
+      where: { sku },
+      select: { id: true, sku: true },
+    });
+  }
+
+  async findCategoryById(id: string) {
+    return await this.prisma.category.findUnique({
+      where: { id },
+      select: { id: true, name: true },
+    });
+  }
+
+  async createProduct(data: CreateProductRequest) {
+    return await this.prisma.$transaction(async (tx) => {
+      // Create product
+      const product = await tx.product.create({
+        data: {
+          name: data.name,
+          slug: data.slug,
+          description: data.description || null,
+          categoryId: data.categoryId,
+          sku: data.sku || null,
+          basePrice: data.basePrice,
+          compareAtPrice: data.compareAtPrice || null,
+          cost: data.cost || null,
+          weight: data.weight || null,
+          isActive: data.isActive ?? true,
+          isFeatured: data.isFeatured ?? false,
+          trackInventory: data.trackInventory ?? true,
+          seoTitle: data.seoTitle || null,
+          seoDescription: data.seoDescription || null,
+        },
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              description: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+        },
+      });
+
+      // Create images if provided
+      if (data.images && data.images.length > 0) {
+        await tx.productImage.createMany({
+          data: data.images.map((image, index) => ({
+            productId: product.id,
+            url: image.url,
+            alt: image.alt || null,
+            position: image.position ?? index,
+          })),
+        });
+      }
+
+      // Create variants if provided
+      if (data.variants && data.variants.length > 0) {
+        for (const variant of data.variants) {
+          const createdVariant = await tx.productVariant.create({
+            data: {
+              productId: product.id,
+              title: variant.title,
+              sku: variant.sku,
+              price: variant.price,
+              compareAtPrice: variant.compareAtPrice || null,
+              cost: variant.cost || null,
+              weight: variant.weight || null,
+              barcode: variant.barcode || null,
+              image: variant.image || null,
+              position: variant.position ?? 0,
+              isActive: variant.isActive ?? true,
+            },
+          });
+
+          // Create inventory if provided
+          if (variant.inventory) {
+            await tx.inventory.create({
+              data: {
+                variantId: createdVariant.id,
+                quantity: variant.inventory.quantity,
+                reserved: variant.inventory.reserved ?? 0,
+                lowStockThreshold: variant.inventory.lowStockThreshold || null,
+              },
+            });
+          }
+
+          // Create variant options if provided
+          if (variant.options && variant.options.length > 0) {
+            await tx.variantOption.createMany({
+              data: variant.options.map((option) => ({
+                variantId: createdVariant.id,
+                optionName: option.optionName,
+                optionValue: option.optionValue,
+              })),
+            });
+          }
+        }
+      }
+
+      // Create attributes if provided
+      if (data.attributes && data.attributes.length > 0) {
+        await tx.productAttribute.createMany({
+          data: data.attributes.map((attribute) => ({
+            productId: product.id,
+            name: attribute.name,
+            value: attribute.value,
+            position: attribute.position ?? 0,
+          })),
+        });
+      }
+
+      // Return complete product with relations
+      return await tx.product.findUnique({
+        where: { id: product.id },
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              description: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+          variants: {
+            select: {
+              id: true,
+              productId: true,
+              title: true,
+              sku: true,
+              price: true,
+              compareAtPrice: true,
+              cost: true,
+              weight: true,
+              barcode: true,
+              image: true,
+              position: true,
+              isActive: true,
+              createdAt: true,
+              updatedAt: true,
+              inventory: {
+                select: {
+                  quantity: true,
+                  reserved: true,
+                  lowStockThreshold: true,
+                },
+              },
+              options: {
+                select: {
+                  id: true,
+                  optionName: true,
+                  optionValue: true,
+                },
+              },
+            },
+          },
+          images: {
+            select: {
+              id: true,
+              productId: true,
+              url: true,
+              alt: true,
+              position: true,
+              createdAt: true,
+            },
+            orderBy: {
+              position: "asc",
+            },
+          },
+          attributes: {
+            select: {
+              id: true,
+              name: true,
+              value: true,
+              position: true,
+            },
+            orderBy: {
+              position: "asc",
+            },
+          },
+        },
+      });
     });
   }
 }

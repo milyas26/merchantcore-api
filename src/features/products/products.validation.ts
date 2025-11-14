@@ -6,10 +6,12 @@ import {
   getProductByIdSchema,
   getProductBySlugSchema,
   checkStockSchema,
+  createProductSchema,
   GetProductsQuery,
   GetProductByIdParams,
   GetProductBySlugParams,
   CheckStockBody,
+  CreateProductRequest,
 } from './products.schema';
 
 export class ProductValidation {
@@ -124,12 +126,25 @@ export class ProductValidation {
   }
 
   /**
-   * Validate product creation/update data (for future use)
+   * Validate product creation data
    */
-  static validateProductData(data: any) {
-    // TODO: Implement product creation/update validation
-    // This is for future use when adding create/update endpoints
-    return data;
+  static validateCreateProduct(data: CreateProductRequest): any {
+    try {
+      return createProductSchema.parse(data);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const validationErrors = error.errors.map((err) => ({
+          field: err.path.join("."),
+          message: err.message,
+        }));
+
+        throw ErrorHandler.validationError(
+          "Invalid product data",
+          validationErrors
+        );
+      }
+      throw error;
+    }
   }
 
   /**

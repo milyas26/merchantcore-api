@@ -113,3 +113,66 @@ export type GetProductsQuery = z.infer<typeof getProductsQuerySchema>;
 export type GetProductByIdParams = z.infer<typeof getProductByIdSchema>;
 export type GetProductBySlugParams = z.infer<typeof getProductBySlugSchema>;
 export type CheckStockBody = z.infer<typeof checkStockSchema>;
+
+// Create Product Schemas
+export const createProductImageSchema = z.object({
+  url: z.string().url(),
+  alt: z.string().optional(),
+  position: z.number().int().nonnegative().optional().default(0),
+});
+
+export const createVariantOptionSchema = z.object({
+  optionName: z.string().min(1).max(50),
+  optionValue: z.string().min(1).max(100),
+});
+
+export const createProductVariantSchema = z.object({
+  title: z.string().min(1).max(255),
+  sku: z.string().min(1).max(100),
+  price: z.number().positive(),
+  compareAtPrice: z.number().positive().optional(),
+  cost: z.number().positive().optional(),
+  weight: z.number().positive().optional(),
+  barcode: z.string().max(100).optional(),
+  image: z.string().url().optional(),
+  position: z.number().int().nonnegative().optional().default(0),
+  isActive: z.boolean().optional().default(true),
+  inventory: z.object({
+    quantity: z.number().int().nonnegative(),
+    reserved: z.number().int().nonnegative().optional().default(0),
+    lowStockThreshold: z.number().int().positive().optional(),
+  }).optional(),
+  options: z.array(createVariantOptionSchema).optional(),
+});
+
+export const createProductAttributeSchema = z.object({
+  name: z.string().min(1).max(100),
+  value: z.string().min(1).max(500),
+  position: z.number().int().nonnegative().optional().default(0),
+});
+
+export const createProductSchema = z.object({
+  name: z.string().min(1).max(255),
+  slug: z.string().min(1).max(255).regex(/^[a-z0-9-]+$/),
+  description: z.string().optional(),
+  categoryId: z.string().uuid(),
+  sku: z.string().min(1).max(100).optional(),
+  basePrice: z.number().positive(),
+  compareAtPrice: z.number().positive().optional(),
+  cost: z.number().positive().optional(),
+  weight: z.number().positive().optional(),
+  isActive: z.boolean().optional().default(true),
+  isFeatured: z.boolean().optional().default(false),
+  trackInventory: z.boolean().optional().default(true),
+  seoTitle: z.string().max(255).optional(),
+  seoDescription: z.string().max(500).optional(),
+  images: z.array(createProductImageSchema).optional(),
+  variants: z.array(createProductVariantSchema).optional(),
+  attributes: z.array(createProductAttributeSchema).optional(),
+});
+
+export type CreateProductRequest = z.infer<typeof createProductSchema>;
+export type CreateProductImageRequest = z.infer<typeof createProductImageSchema>;
+export type CreateProductVariantRequest = z.infer<typeof createProductVariantSchema>;
+export type CreateVariantOptionRequest = z.infer<typeof createVariantOptionSchema>;
+export type CreateProductAttributeRequest = z.infer<typeof createProductAttributeSchema>;

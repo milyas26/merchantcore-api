@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { ProductService } from './products.service';
-import { GetProductsQuery } from './products.interface';
+import { GetProductsQuery, CreateProductRequest } from "./products.interface";
 import { ErrorHandler, ResponseHandler } from '../../utils';
 import { AppError } from '../../utils';
 import { PrismaClient } from "@prisma/client";
@@ -167,6 +167,44 @@ export class ProductController {
       }
 
       return reply.code(200).send(ResponseHandler.success(result));
+    } catch (error) {
+      request.log.error(error);
+      const appError = ErrorHandler.handleUnknownError(error);
+      return reply
+        .code(appError.statusCode)
+        .send(ResponseHandler.error(appError));
+    }
+  }
+
+  async createProduct(
+    request: FastifyRequest<{ Body: CreateProductRequest }>,
+    reply: FastifyReply
+  ) {
+    try {
+      const result = await this.productService.createProduct(request.body);
+
+      // Check if error response
+      if ("error" in result) {
+        const error = result.error;
+        const appError: AppError = {
+          code: error.code,
+          message: error.message,
+          statusCode:
+            error.code === "DUPLICATE_SLUG" ||
+            error.code === "DUPLICATE_SKU" ||
+            error.code === "DUPLICATE_VARIANT_SKU"
+              ? 409
+              : error.code === "CATEGORY_NOT_FOUND"
+              ? 400
+              : 400,
+          ...(error.details && { details: error.details }),
+        };
+        return reply
+          .code(appError.statusCode)
+          .send(ResponseHandler.error(appError));
+      }
+
+      return reply.code(201).send(ResponseHandler.success(result.data));
     } catch (error) {
       request.log.error(error);
       const appError = ErrorHandler.handleUnknownError(error);

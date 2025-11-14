@@ -89,3 +89,64 @@ export interface ErrorResponse {
     details?: Prisma.PrismaClientKnownRequestError;
   };
 }
+
+// Create Product Interfaces
+export interface CreateProductRequest {
+  name: string;
+  slug: string;
+  description?: string;
+  categoryId: string;
+  sku?: string;
+  basePrice: number;
+  compareAtPrice?: number;
+  cost?: number;
+  weight?: number;
+  isActive?: boolean;
+  isFeatured?: boolean;
+  trackInventory?: boolean;
+  seoTitle?: string;
+  seoDescription?: string;
+  images?: CreateProductImageRequest[];
+  variants?: CreateProductVariantRequest[];
+  attributes?: CreateProductAttributeRequest[];
+}
+
+export interface CreateProductImageRequest {
+  url: string;
+  alt?: string;
+  position?: number;
+}
+
+export interface CreateProductVariantRequest {
+  title: string;
+  sku: string;
+  price: number;
+  compareAtPrice?: number;
+  cost?: number;
+  weight?: number;
+  barcode?: string;
+  image?: string;
+  position?: number;
+  isActive?: boolean;
+  inventory?: {
+    quantity: number;
+    reserved?: number;
+    lowStockThreshold?: number;
+  };
+  options?: CreateVariantOptionRequest[];
+}
+
+export interface CreateVariantOptionRequest {
+  optionName: string;
+  optionValue: string;
+}
+
+export interface CreateProductAttributeRequest {
+  name: string;
+  value: string;
+  position?: number;
+}
+
+export interface CreateProductResponse {
+  data: Product;
+}

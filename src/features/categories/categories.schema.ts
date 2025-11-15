@@ -65,10 +65,14 @@ export type GetCategoryBySlugParams = z.infer<typeof getCategoryBySlugSchema>;
 // Create Category Schemas
 export const createCategorySchema = z.object({
   name: z.string().min(1).max(255),
-  slug: z.string().min(1).max(255).regex(/^[a-z0-9-]+$/),
-  description: z.string().optional(),
-  image: z.string().url().optional(),
-  parentId: z.string().uuid().optional(),
+  slug: z
+    .string()
+    .min(1)
+    .max(255)
+    .regex(/^[a-z0-9-]+$/),
+  description: z.string().optional().nullable(),
+  image: z.string().optional().nullable(),
+  parentId: z.string().optional().nullable(),
   isActive: z.boolean().optional().default(true),
   sortOrder: z.number().int().optional().default(0),
 });

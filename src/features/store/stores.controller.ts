@@ -101,10 +101,25 @@ export class StoresController {
         storeId
       );
 
+      const accessToken = await reply.jwtSign({
+        userId: userId,
+        email: request.user.email,
+        currentStore: currentStore
+          ? {
+              id: currentStore.id,
+              name: currentStore.name,
+              description: currentStore.description,
+              role: currentStore.role,
+              slug: currentStore.slug,
+            }
+          : null,
+      });
+
       return reply.send({
         success: true,
         data: {
           currentStore,
+          accessToken,
         },
       });
     } catch (error) {

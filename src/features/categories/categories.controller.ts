@@ -2,14 +2,14 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { CategoryService } from './categories.service';
 import { GetCategoriesQuery, CreateCategoryRequest } from "./categories.interface";
 import { ErrorHandler, ResponseHandler } from '../../utils';
-import { AppError } from '../../utils';
-import { PrismaClient } from "@prisma/client";
+import { AppError } from "../../utils";
 import { getCategoriesQuerySchema } from "./categories.schema";
+import { StorePrismaClient } from "../../../packages/libs/db/getPrismaForSchema";
 
 export class CategoryController {
   private categoryService: CategoryService;
 
-  constructor(prisma: PrismaClient) {
+  constructor(prisma: StorePrismaClient) {
     this.categoryService = new CategoryService(prisma);
   }
 

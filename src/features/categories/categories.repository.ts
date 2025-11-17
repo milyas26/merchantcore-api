@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { StorePrismaClient } from "../../../packages/libs/db/getPrismaForSchema";
 import { GetCategoriesQuery } from "./categories.interface";
-import { PrismaClient } from "@prisma/client";
 
 export class CategoryRepository {
-  constructor(private prisma: PrismaClient) {}
+  constructor(private prisma: StorePrismaClient) {}
 
   async findMany(query: GetCategoriesQuery) {
     const {
@@ -18,35 +18,27 @@ export class CategoryRepository {
 
     const skip = (page - 1) * limit;
 
-    // Build where clause
     const where: any = {};
-
     if (q) {
       where.OR = [
         { name: { contains: q, mode: "insensitive" } },
         { description: { contains: q, mode: "insensitive" } },
       ];
     }
-
     if (parentId !== undefined) {
       where.parentId = parentId;
     }
-
     if (isActive !== undefined) {
       where.isActive = isActive;
     }
 
-    // Get total count
     const total = await this.prisma.category.count({ where });
 
-    // Get categories with relations
     const categories = await this.prisma.category.findMany({
       where,
       skip,
       take: limit,
-      orderBy: {
-        [sortBy]: sortOrder,
-      },
+      orderBy: { [sortBy]: sortOrder },
       include: {
         parent: {
           select: {
@@ -69,15 +61,9 @@ export class CategoryRepository {
             createdAt: true,
             updatedAt: true,
           },
-          orderBy: {
-            sortOrder: "asc",
-          },
+          orderBy: { sortOrder: "asc" },
         },
-        _count: {
-          select: {
-            products: true,
-          },
-        },
+        _count: { select: { products: true } },
       },
     });
 

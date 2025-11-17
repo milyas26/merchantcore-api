@@ -2,14 +2,19 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { CategoryController } from "./categories.controller";
 import { GetCategoriesQuery, CreateCategoryRequest } from "./categories.interface";
 import { AuthenticatedRequest } from "../../plugins/auth.plugin";
-import { runInSchema } from "../../utils/schemaRunner";
+import { getPrismaForSchema } from "../../../packages/libs/db/getPrismaForSchema";
 
 export default async function categoryRoutes(fastify: FastifyInstance) {
   // Helper function to get store schema from request context
   const getStoreSchema = (request: FastifyRequest): string => {
     const authenticatedRequest = request as AuthenticatedRequest;
     const currentStore = authenticatedRequest.user?.currentStore;
-    return currentStore?.slug || "";
+
+    if (!currentStore?.slug) {
+      throw new Error("No store selected. Please select a store first.");
+    }
+
+    return currentStore.slug;
   };
 
   // Add authentication hook to all routes in this file
@@ -28,10 +33,9 @@ export default async function categoryRoutes(fastify: FastifyInstance) {
       reply: FastifyReply
     ) => {
       const storeSchema = getStoreSchema(request);
-      return runInSchema(storeSchema, async (tx) => {
-        const categoryController = new CategoryController(tx);
-        return categoryController.getCategories(request, reply);
-      });
+      const prisma = getPrismaForSchema(storeSchema);
+      const categoryController = new CategoryController(prisma);
+      return categoryController.getCategories(request, reply);
     }
   );
 
@@ -43,10 +47,9 @@ export default async function categoryRoutes(fastify: FastifyInstance) {
       reply: FastifyReply
     ) => {
       const storeSchema = getStoreSchema(request);
-      return runInSchema(storeSchema, async (tx) => {
-        const categoryController = new CategoryController(tx);
-        return categoryController.getCategoryById(request, reply);
-      });
+      const prisma = getPrismaForSchema(storeSchema);
+      const categoryController = new CategoryController(prisma);
+      return categoryController.getCategoryById(request, reply);
     }
   );
 
@@ -58,10 +61,9 @@ export default async function categoryRoutes(fastify: FastifyInstance) {
       reply: FastifyReply
     ) => {
       const storeSchema = getStoreSchema(request);
-      return runInSchema(storeSchema, async (tx) => {
-        const categoryController = new CategoryController(tx);
-        return categoryController.getCategoryBySlug(request, reply);
-      });
+      const prisma = getPrismaForSchema(storeSchema);
+      const categoryController = new CategoryController(prisma);
+      return categoryController.getCategoryBySlug(request, reply);
     }
   );
 
@@ -75,10 +77,9 @@ export default async function categoryRoutes(fastify: FastifyInstance) {
       reply: FastifyReply
     ) => {
       const storeSchema = getStoreSchema(request);
-      return runInSchema(storeSchema, async (tx) => {
-        const categoryController = new CategoryController(tx);
-        return categoryController.createCategory(request, reply);
-      });
+      const prisma = getPrismaForSchema(storeSchema);
+      const categoryController = new CategoryController(prisma);
+      return categoryController.createCategory(request, reply);
     }
   );
 }

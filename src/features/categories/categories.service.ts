@@ -8,12 +8,12 @@ import {
 } from "./categories.interface";
 import { AppError, ErrorHandler, ResponseHandler } from "../../utils";
 import { GetCategoriesQuery, createCategorySchema } from "./categories.schema";
-import { PrismaClient } from "@prisma/client";
+import { StorePrismaClient } from "../../../packages/libs/db/getPrismaForSchema";
 
 export class CategoryService {
   private categoryRepository: CategoryRepository;
 
-  constructor(prisma: PrismaClient) {
+  constructor(prisma: StorePrismaClient) {
     this.categoryRepository = new CategoryRepository(prisma);
   }
 
@@ -147,13 +147,18 @@ export class CategoryService {
         );
         if (!parentCategory) {
           return ResponseHandler.error(
-            ErrorHandler.createError("CATEGORY_NOT_FOUND", "Parent category not found")
+            ErrorHandler.createError(
+              "CATEGORY_NOT_FOUND",
+              "Parent category not found"
+            )
           );
         }
       }
 
       // Create category
-      const category = await this.categoryRepository.createCategory(categoryData);
+      const category = await this.categoryRepository.createCategory(
+        categoryData
+      );
 
       return ResponseHandler.success(category);
     } catch (error) {

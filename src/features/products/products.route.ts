@@ -9,7 +9,12 @@ export default async function productRoutes(fastify: FastifyInstance) {
   const getStoreSchema = (request: FastifyRequest): string => {
     const authenticatedRequest = request as AuthenticatedRequest;
     const currentStore = authenticatedRequest.user?.currentStore;
-    return currentStore?.slug || "";
+    
+    if (!currentStore?.slug) {
+      throw new Error("No store selected. Please select a store first.");
+    }
+    
+    return currentStore.slug;
   };
 
   // Add authentication hook to all routes in this fil

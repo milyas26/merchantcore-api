@@ -74,3 +74,19 @@ export interface CreateCategoryRequest {
 export interface CreateCategoryResponse {
   data: Category;
 }
+
+// Update Category Interfaces
+export interface UpdateCategoryRequest {
+  name?: string;
+  slug?: string;
+  description?: string | null;
+  image?: string | null;
+  parentId?: string | null;
+  isActive?: boolean;
+  sortOrder?: number;
+}
+
+export interface MoveCategoryRequest {
+  parentId?: string | null;
+  sortOrder?: number;
+}

@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { CategoryService } from './categories.service';
-import { GetCategoriesQuery, CreateCategoryRequest } from "./categories.interface";
+import { GetCategoriesQuery, CreateCategoryRequest, UpdateCategoryRequest, MoveCategoryRequest } from "./categories.interface";
 import { ErrorHandler, ResponseHandler } from '../../utils';
 import { AppError } from "../../utils";
 import { getCategoriesQuerySchema } from "./categories.schema";
@@ -61,6 +61,48 @@ export class CategoryController {
       return reply
         .code(appError.statusCode)
         .send(ResponseHandler.error(appError));
+    }
+  }
+
+  async getParentCategories(
+    request: FastifyRequest<{ Querystring: GetCategoriesQuery }>,
+    reply: FastifyReply
+  ) {
+    try {
+      const validationResult = getCategoriesQuerySchema.safeParse(request.query);
+      if (!validationResult.success) {
+        const appError: AppError = {
+          code: "VALIDATION_ERROR",
+          message: "Invalid query parameters",
+          statusCode: 400,
+          details: validationResult.error.flatten(),
+        };
+        return reply.code(appError.statusCode).send(ResponseHandler.error(appError));
+      }
+
+      const validatedQuery = validationResult.data;
+      const result = await this.categoryService.getParentCategories(validatedQuery);
+
+      if ("error" in result) {
+        const error = result.error;
+        const appError: AppError = {
+          code: error.code,
+          message: error.message,
+          statusCode: 400,
+          ...(error.details && { details: error.details }),
+        };
+        return reply.code(appError.statusCode).send(ResponseHandler.error(appError));
+      }
+
+      return reply
+        .code(200)
+        .send(
+          ResponseHandler.success(result.data, undefined, result.pagination)
+        );
+    } catch (error) {
+      request.log.error(error);
+      const appError = ErrorHandler.handleUnknownError(error);
+      return reply.code(appError.statusCode).send(ResponseHandler.error(appError));
     }
   }
 
@@ -179,6 +221,81 @@ export class CategoryController {
       return reply
         .code(appError.statusCode)
         .send(ResponseHandler.error(appError));
+    }
+  }
+
+  async updateCategory(
+    request: FastifyRequest<{ Params: { id: string }; Body: UpdateCategoryRequest }>,
+    reply: FastifyReply
+  ) {
+    try {
+      const { id } = request.params;
+      const result = await this.categoryService.updateCategory(id, request.body);
+      if ("error" in result) {
+        const error = result.error;
+        const appError: AppError = {
+          code: error.code,
+          message: error.message,
+          statusCode: error.code === "CATEGORY_NOT_FOUND" ? 404 : 400,
+          ...(error.details && { details: error.details }),
+        };
+        return reply.code(appError.statusCode).send(ResponseHandler.error(appError));
+      }
+      return reply.code(200).send(ResponseHandler.success(result.data));
+    } catch (error) {
+      request.log.error(error);
+      const appError = ErrorHandler.handleUnknownError(error);
+      return reply.code(appError.statusCode).send(ResponseHandler.error(appError));
+    }
+  }
+
+  async deleteCategory(
+    request: FastifyRequest<{ Params: { id: string } }>,
+    reply: FastifyReply
+  ) {
+    try {
+      const { id } = request.params;
+      const result = await this.categoryService.deleteCategory(id);
+      if ("error" in result) {
+        const error = result.error;
+        const appError: AppError = {
+          code: error.code,
+          message: error.message,
+          statusCode: error.code === "CATEGORY_NOT_FOUND" ? 404 : 400,
+          ...(error.details && { details: error.details }),
+        };
+        return reply.code(appError.statusCode).send(ResponseHandler.error(appError));
+      }
+      return reply.code(200).send(ResponseHandler.success({ success: true }));
+    } catch (error) {
+      request.log.error(error);
+      const appError = ErrorHandler.handleUnknownError(error);
+      return reply.code(appError.statusCode).send(ResponseHandler.error(appError));
+    }
+  }
+
+  async moveCategory(
+    request: FastifyRequest<{ Params: { id: string }; Body: MoveCategoryRequest }>,
+    reply: FastifyReply
+  ) {
+    try {
+      const { id } = request.params;
+      const result = await this.categoryService.moveCategory(id, request.body);
+      if ("error" in result) {
+        const error = result.error;
+        const appError: AppError = {
+          code: error.code,
+          message: error.message,
+          statusCode: error.code === "CATEGORY_NOT_FOUND" ? 404 : 400,
+          ...(error.details && { details: error.details }),
+        };
+        return reply.code(appError.statusCode).send(ResponseHandler.error(appError));
+      }
+      return reply.code(200).send(ResponseHandler.success(result.data));
+    } catch (error) {
+      request.log.error(error);
+      const appError = ErrorHandler.handleUnknownError(error);
+      return reply.code(appError.statusCode).send(ResponseHandler.error(appError));
     }
   }
 }

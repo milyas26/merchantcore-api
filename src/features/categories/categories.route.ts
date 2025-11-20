@@ -1,6 +1,11 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { CategoryController } from "./categories.controller";
-import { GetCategoriesQuery, CreateCategoryRequest } from "./categories.interface";
+import {
+  GetCategoriesQuery,
+  CreateCategoryRequest,
+  UpdateCategoryRequest,
+  MoveCategoryRequest,
+} from "./categories.interface";
 import { AuthenticatedRequest } from "../../plugins/auth.plugin";
 import { getPrismaForSchema } from "../../../packages/libs/db/getPrismaForSchema";
 
@@ -35,7 +40,7 @@ export default async function categoryRoutes(fastify: FastifyInstance) {
       const storeSchema = getStoreSchema(request);
       const prisma = getPrismaForSchema(storeSchema);
       const categoryController = new CategoryController(prisma);
-      return categoryController.getCategories(request, reply);
+      return categoryController.getParentCategories(request, reply);
     }
   );
 
@@ -80,6 +85,54 @@ export default async function categoryRoutes(fastify: FastifyInstance) {
       const prisma = getPrismaForSchema(storeSchema);
       const categoryController = new CategoryController(prisma);
       return categoryController.createCategory(request, reply);
+    }
+  );
+
+  // PUT /api/categories/:id - Update category
+  fastify.put(
+    "/:id",
+    async (
+      request: FastifyRequest<{
+        Params: { id: string };
+        Body: UpdateCategoryRequest;
+      }>,
+      reply: FastifyReply
+    ) => {
+      const storeSchema = getStoreSchema(request);
+      const prisma = getPrismaForSchema(storeSchema);
+      const categoryController = new CategoryController(prisma);
+      return categoryController.updateCategory(request, reply);
+    }
+  );
+
+  // PUT /api/categories/:id/move - Move category (change parent/sortOrder)
+  fastify.put(
+    "/:id/move",
+    async (
+      request: FastifyRequest<{
+        Params: { id: string };
+        Body: MoveCategoryRequest;
+      }>,
+      reply: FastifyReply
+    ) => {
+      const storeSchema = getStoreSchema(request);
+      const prisma = getPrismaForSchema(storeSchema);
+      const categoryController = new CategoryController(prisma);
+      return categoryController.moveCategory(request, reply);
+    }
+  );
+
+  // DELETE /api/categories/:id - Delete category
+  fastify.delete(
+    "/:id",
+    async (
+      request: FastifyRequest<{ Params: { id: string } }>,
+      reply: FastifyReply
+    ) => {
+      const storeSchema = getStoreSchema(request);
+      const prisma = getPrismaForSchema(storeSchema);
+      const categoryController = new CategoryController(prisma);
+      return categoryController.deleteCategory(request, reply);
     }
   );
 }

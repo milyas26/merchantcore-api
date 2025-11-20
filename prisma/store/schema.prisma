@@ -13,16 +13,16 @@ datasource db {
 
 // Product catalog models
 model Category {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   name        String
-  slug        String    @unique
+  slug        String   @unique
   description String?
   image       String?
   parentId    String?
-  isActive    Boolean   @default(true)
-  sortOrder   Int       @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
   children Category[] @relation("CategoryHierarchy")
@@ -32,55 +32,55 @@ model Category {
 }
 
 model Product {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique
-  description String?
-  categoryId  String
-  sku         String?  @unique
-  basePrice   Decimal  @db.Decimal(10, 2)
+  id             String   @id @default(cuid())
+  name           String
+  slug           String   @unique
+  description    String?
+  categoryId     String
+  sku            String?  @unique
+  basePrice      Decimal  @db.Decimal(10, 2)
   compareAtPrice Decimal? @db.Decimal(10, 2)
-  cost        Decimal? @db.Decimal(10, 2)
-  weight      Decimal? @db.Decimal(8, 2) // Weight in kg
-  isActive    Boolean  @default(true)
-  isFeatured  Boolean  @default(false)
-  trackInventory Boolean @default(true)
-  seoTitle    String?
+  cost           Decimal? @db.Decimal(10, 2)
+  weight         Decimal? @db.Decimal(8, 2) // Weight in kg
+  isActive       Boolean  @default(true)
+  isFeatured     Boolean  @default(false)
+  trackInventory Boolean  @default(true)
+  seoTitle       String?
   seoDescription String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  category    Category         @relation(fields: [categoryId], references: [id])
-  variants    ProductVariant[]
-  images      ProductImage[]
-  attributes  ProductAttribute[]
-  cartItems   CartItem[]
-  orderItems  OrderItem[]
+  category   Category           @relation(fields: [categoryId], references: [id])
+  variants   ProductVariant[]
+  images     ProductImage[]
+  attributes ProductAttribute[]
+  cartItems  CartItem[]
+  orderItems OrderItem[]
 
   @@map("products")
 }
 
 model ProductVariant {
-  id        String  @id @default(cuid())
-  productId String
-  title     String
-  sku       String  @unique
-  price     Decimal @db.Decimal(10, 2)
+  id             String   @id @default(cuid())
+  productId      String
+  title          String
+  sku            String   @unique
+  price          Decimal  @db.Decimal(10, 2)
   compareAtPrice Decimal? @db.Decimal(10, 2)
-  cost      Decimal? @db.Decimal(10, 2)
-  weight    Decimal? @db.Decimal(8, 2)
-  barcode   String?
-  image     String?
-  position  Int     @default(0)
-  isActive  Boolean @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  cost           Decimal? @db.Decimal(10, 2)
+  weight         Decimal? @db.Decimal(8, 2)
+  barcode        String?
+  image          String?
+  position       Int      @default(0)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  product     Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
-  options     VariantOption[]
-  inventory   Inventory?
-  cartItems   CartItem[]
-  orderItems  OrderItem[]
+  product    Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  options    VariantOption[]
+  inventory  Inventory?
+  cartItems  CartItem[]
+  orderItems OrderItem[]
 
   @@map("product_variants")
 }
@@ -99,11 +99,11 @@ model ProductImage {
 }
 
 model ProductAttribute {
-  id          String @id @default(cuid())
-  productId   String
-  name        String
-  value       String
-  position    Int    @default(0)
+  id        String @id @default(cuid())
+  productId String
+  name      String
+  value     String
+  position  Int    @default(0)
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
@@ -111,10 +111,10 @@ model ProductAttribute {
 }
 
 model VariantOption {
-  id              String @id @default(cuid())
-  variantId       String
-  optionName      String // e.g., "Color", "Size"
-  optionValue     String // e.g., "Red", "Large"
+  id          String @id @default(cuid())
+  variantId   String
+  optionName  String // e.g., "Color", "Size"
+  optionValue String // e.g., "Red", "Large"
 
   variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
 
@@ -122,12 +122,12 @@ model VariantOption {
 }
 
 model Inventory {
-  id              String   @id @default(cuid())
-  variantId       String   @unique
-  quantity        Int      @default(0)
-  reserved        Int      @default(0)
-  lowStockThreshold Int?   @default(10)
-  updatedAt       DateTime @updatedAt
+  id                String   @id @default(cuid())
+  variantId         String   @unique
+  quantity          Int      @default(0)
+  reserved          Int      @default(0)
+  lowStockThreshold Int?     @default(10)
+  updatedAt         DateTime @updatedAt
 
   variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
 
@@ -136,14 +136,14 @@ model Inventory {
 
 // Customer management
 model Customer {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  firstName String
-  lastName  String
-  phone     String?
-  acceptsMarketing Boolean @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String   @id @default(cuid())
+  email            String   @unique
+  firstName        String
+  lastName         String
+  phone            String?
+  acceptsMarketing Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   addresses CustomerAddress[]
   orders    Order[]
@@ -153,7 +153,7 @@ model Customer {
 }
 
 model CustomerAddress {
-  id         String  @id @default(cuid())
+  id         String   @id @default(cuid())
   customerId String
   firstName  String
   lastName   String
@@ -163,35 +163,35 @@ model CustomerAddress {
   address2   String?
   city       String
   province   String
-  country    String  @default("Indonesia")
+  country    String   @default("Indonesia")
   postalCode String
-  isDefault  Boolean @default(false)
+  isDefault  Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  billingOrders  Order[] @relation("OrderBillingAddress")
-  shippingOrders Order[] @relation("OrderShippingAddress")
+  customer       Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  billingOrders  Order[]  @relation("OrderBillingAddress")
+  shippingOrders Order[]  @relation("OrderShippingAddress")
 
   @@map("customer_addresses")
 }
 
 // Cart management
 model Cart {
-  id         String    @id @default(cuid())
-  sessionId  String?   @unique
+  id         String   @id @default(cuid())
+  sessionId  String?  @unique
   customerId String?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   items    CartItem[]
-  customer Customer? @relation(fields: [customerId], references: [id])
+  customer Customer?  @relation(fields: [customerId], references: [id])
 
   @@map("carts")
 }
 
 model CartItem {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   cartId    String
   productId String
   variantId String?
@@ -199,8 +199,8 @@ model CartItem {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  cart    Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product Product        @relation(fields: [productId], references: [id])
+  cart    Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product         @relation(fields: [productId], references: [id])
   variant ProductVariant? @relation(fields: [variantId], references: [id])
 
   @@unique([cartId, productId, variantId])
@@ -209,29 +209,29 @@ model CartItem {
 
 // Order management
 model Order {
-  id              String      @id @default(cuid())
-  customerId      String
-  billingAddressId String
+  id                String            @id @default(cuid())
+  customerId        String
+  billingAddressId  String
   shippingAddressId String
-  status          OrderStatus @default(PENDING)
-  paymentStatus   PaymentStatus @default(PENDING)
+  status            OrderStatus       @default(PENDING)
+  paymentStatus     PaymentStatus     @default(PENDING)
   fulfillmentStatus FulfillmentStatus @default(UNFULFILLED)
-  currency        String      @default("IDR")
-  subtotal        Decimal     @db.Decimal(10, 2)
-  tax             Decimal     @db.Decimal(10, 2) @default(0)
-  shipping        Decimal     @db.Decimal(10, 2)
-  discount        Decimal     @db.Decimal(10, 2) @default(0)
-  total           Decimal     @db.Decimal(10, 2)
-  weight          Decimal?    @db.Decimal(8, 2)
-  notes           String?
-  tags            String[]    @default([])
-  cancelledAt     DateTime?
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  currency          String            @default("IDR")
+  subtotal          Decimal           @db.Decimal(10, 2)
+  tax               Decimal           @default(0) @db.Decimal(10, 2)
+  shipping          Decimal           @db.Decimal(10, 2)
+  discount          Decimal           @default(0) @db.Decimal(10, 2)
+  total             Decimal           @db.Decimal(10, 2)
+  weight            Decimal?          @db.Decimal(8, 2)
+  notes             String?
+  tags              String[]          @default([])
+  cancelledAt       DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 
-  customer        Customer         @relation(fields: [customerId], references: [id])
-  billingAddress  CustomerAddress  @relation("OrderBillingAddress", fields: [billingAddressId], references: [id])
-  shippingAddress CustomerAddress  @relation("OrderShippingAddress", fields: [shippingAddressId], references: [id])
+  customer        Customer             @relation(fields: [customerId], references: [id])
+  billingAddress  CustomerAddress      @relation("OrderBillingAddress", fields: [billingAddressId], references: [id])
+  shippingAddress CustomerAddress      @relation("OrderShippingAddress", fields: [shippingAddressId], references: [id])
   items           OrderItem[]
   transactions    PaymentTransaction[]
   fulfillments    Fulfillment[]
@@ -241,28 +241,28 @@ model Order {
 }
 
 model OrderItem {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   orderId   String
   productId String
   variantId String?
   quantity  Int
-  price     Decimal @db.Decimal(10, 2) // Price per item at time of order
-  total     Decimal @db.Decimal(10, 2) // quantity * price
+  price     Decimal  @db.Decimal(10, 2) // Price per item at time of order
+  total     Decimal  @db.Decimal(10, 2) // quantity * price
   createdAt DateTime @default(now())
 
-  order   Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product        @relation(fields: [productId], references: [id])
+  order   Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product         @relation(fields: [productId], references: [id])
   variant ProductVariant? @relation(fields: [variantId], references: [id])
 
   @@map("order_items")
 }
 
 model OrderEvent {
-  id        String   @id @default(cuid())
+  id        String      @id @default(cuid())
   orderId   String
   status    OrderStatus
   notes     String?
-  createdAt DateTime @default(now())
+  createdAt DateTime    @default(now())
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
@@ -271,22 +271,22 @@ model OrderEvent {
 
 // Payment processing
 model PaymentTransaction {
-  id              String            @id @default(cuid())
-  orderId         String
-  type            TransactionType   @default(PAYMENT)
-  provider        PaymentProvider
-  providerRef     String?           // External reference from payment gateway
-  amount          Decimal           @db.Decimal(10, 2)
-  currency        String            @default("IDR")
-  status          TransactionStatus @default(PENDING)
-  paymentMethod   String?           // e.g., "credit_card", "bank_transfer"
-  fee             Decimal?          @db.Decimal(10, 2) // Payment gateway fee
-  externalId      String?           // External payment ID from gateway
-  paidAt          DateTime?
-  expiresAt       DateTime?
-  rawResponse     String?           @db.Text // Store raw gateway response
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  id            String            @id @default(cuid())
+  orderId       String
+  type          TransactionType   @default(PAYMENT)
+  provider      PaymentProvider
+  providerRef   String? // External reference from payment gateway
+  amount        Decimal           @db.Decimal(10, 2)
+  currency      String            @default("IDR")
+  status        TransactionStatus @default(PENDING)
+  paymentMethod String? // e.g., "credit_card", "bank_transfer"
+  fee           Decimal?          @db.Decimal(10, 2) // Payment gateway fee
+  externalId    String? // External payment ID from gateway
+  paidAt        DateTime?
+  expiresAt     DateTime?
+  rawResponse   String?           @db.Text // Store raw gateway response
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
@@ -295,16 +295,16 @@ model PaymentTransaction {
 
 // Shipping and fulfillment
 model ShippingMethod {
-  id          String        @id @default(cuid())
-  name        String
-  type        ShippingType
-  baseCost    Decimal     @db.Decimal(10, 2)
-  perKgCost   Decimal?    @db.Decimal(10, 2)
-  description String?
+  id            String       @id @default(cuid())
+  name          String
+  type          ShippingType
+  baseCost      Decimal      @db.Decimal(10, 2)
+  perKgCost     Decimal?     @db.Decimal(10, 2)
+  description   String?
   estimatedDays Int?
-  isActive    Boolean     @default(true)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  isActive      Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
   fulfillments Fulfillment[]
 
@@ -312,15 +312,15 @@ model ShippingMethod {
 }
 
 model Fulfillment {
-  id              String   @id @default(cuid())
-  orderId         String   @unique
+  id               String    @id @default(cuid())
+  orderId          String    @unique
   shippingMethodId String
-  trackingNumber  String?
-  trackingUrl     String?
-  shippedAt       DateTime?
-  deliveredAt     DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  trackingNumber   String?
+  trackingUrl      String?
+  shippedAt        DateTime?
+  deliveredAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   order          Order          @relation(fields: [orderId], references: [id])
   shippingMethod ShippingMethod @relation(fields: [shippingMethodId], references: [id])

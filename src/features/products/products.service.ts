@@ -9,12 +9,12 @@ import {
 import { AppError, ErrorHandler, ResponseHandler } from "../../utils";
 import { ProductValidation } from "./products.validation";
 import { GetProductsQuery, createProductSchema } from "./products.schema";
-import { PrismaClient } from "@prisma/client";
+import { StorePrismaClient } from "../../../packages/libs/db/getPrismaForSchema";
 
 export class ProductService {
   private productRepository: ProductRepository;
 
-  constructor(prisma: PrismaClient) {
+  constructor(prisma: StorePrismaClient) {
     this.productRepository = new ProductRepository(prisma);
   }
 

@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { GetProductsQuery, CreateProductRequest } from "./products.interface";
-import { PrismaClient } from "@prisma/client";
+import { StorePrismaClient } from "../../../packages/libs/db/getPrismaForSchema";
 
 export class ProductRepository {
-  constructor(private prisma: PrismaClient) {}
+  constructor(private prisma: StorePrismaClient) {}
 
   async findMany(query: GetProductsQuery) {
     const {

@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { ProductController } from "./products.controller";
 import { GetProductsQuery, CreateProductRequest } from "./products.interface";
 import { AuthenticatedRequest } from "../../plugins/auth.plugin";
-import { runInSchema } from "../../utils/schemaRunner";
+import { getPrismaForSchema } from "../../../packages/libs/db/getPrismaForSchema";
 
 export default async function productRoutes(fastify: FastifyInstance) {
   // Helper function to get store schema from request context
@@ -33,10 +33,9 @@ export default async function productRoutes(fastify: FastifyInstance) {
       reply: FastifyReply
     ) => {
       const storeSchema = getStoreSchema(request);
-      return runInSchema(storeSchema, async (tx) => {
-        const productController = new ProductController(tx);
-        return productController.getProducts(request, reply);
-      });
+      const prisma = getPrismaForSchema(storeSchema);
+      const productController = new ProductController(prisma);
+      return productController.getProducts(request, reply);
     }
   );
 
@@ -48,10 +47,9 @@ export default async function productRoutes(fastify: FastifyInstance) {
       reply: FastifyReply
     ) => {
       const storeSchema = getStoreSchema(request);
-      return runInSchema(storeSchema, async (tx) => {
-        const productController = new ProductController(tx);
-        return productController.getProductById(request, reply);
-      });
+      const prisma = getPrismaForSchema(storeSchema);
+      const productController = new ProductController(prisma);
+      return productController.getProductById(request, reply);
     }
   );
 
@@ -63,10 +61,9 @@ export default async function productRoutes(fastify: FastifyInstance) {
       reply: FastifyReply
     ) => {
       const storeSchema = getStoreSchema(request);
-      return runInSchema(storeSchema, async (tx) => {
-        const productController = new ProductController(tx);
-        return productController.getProductBySlug(request, reply);
-      });
+      const prisma = getPrismaForSchema(storeSchema);
+      const productController = new ProductController(prisma);
+      return productController.getProductBySlug(request, reply);
     }
   );
 
@@ -80,10 +77,9 @@ export default async function productRoutes(fastify: FastifyInstance) {
       reply: FastifyReply
     ) => {
       const storeSchema = getStoreSchema(request);
-      return runInSchema(storeSchema, async (tx) => {
-        const productController = new ProductController(tx);
-        return productController.checkStock(request, reply);
-      });
+      const prisma = getPrismaForSchema(storeSchema);
+      const productController = new ProductController(prisma);
+      return productController.checkStock(request, reply);
     }
   );
 
@@ -97,10 +93,9 @@ export default async function productRoutes(fastify: FastifyInstance) {
       reply: FastifyReply
     ) => {
       const storeSchema = getStoreSchema(request);
-      return runInSchema(storeSchema, async (tx) => {
-        const productController = new ProductController(tx);
-        return productController.createProduct(request, reply);
-      });
+      const prisma = getPrismaForSchema(storeSchema);
+      const productController = new ProductController(prisma);
+      return productController.createProduct(request, reply);
     }
   );
 }

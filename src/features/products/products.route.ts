@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { ProductController } from "./products.controller";
-import { GetProductsQuery, CreateProductRequest } from "./products.interface";
+import { GetProductsQuery, UpsertProductRequest } from "./products.interface";
 import { AuthenticatedRequest } from "../../plugins/auth.plugin";
 import { getPrismaForSchema } from "../../../packages/libs/db/getPrismaForSchema";
 
@@ -9,11 +9,11 @@ export default async function productRoutes(fastify: FastifyInstance) {
   const getStoreSchema = (request: FastifyRequest): string => {
     const authenticatedRequest = request as AuthenticatedRequest;
     const currentStore = authenticatedRequest.user?.currentStore;
-    
+
     if (!currentStore?.slug) {
       throw new Error("No store selected. Please select a store first.");
     }
-    
+
     return currentStore.slug;
   };
 
@@ -39,17 +39,17 @@ export default async function productRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // GET /api/products/:id - Get product by ID
+  // GET /api/products/:slug - Get product bu Slug
   fastify.get(
-    "/:id",
+    "/:slug",
     async (
-      request: FastifyRequest<{ Params: { id: string } }>,
+      request: FastifyRequest<{ Params: { slug: string } }>,
       reply: FastifyReply
     ) => {
       const storeSchema = getStoreSchema(request);
       const prisma = getPrismaForSchema(storeSchema);
       const productController = new ProductController(prisma);
-      return productController.getProductById(request, reply);
+      return productController.getProductBySlug(request, reply);
     }
   );
 
@@ -83,19 +83,19 @@ export default async function productRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // POST /api/products - Create new product
+  // POST /api/products - Create or update product by payload id
   fastify.post(
     "/",
     async (
       request: FastifyRequest<{
-        Body: CreateProductRequest;
+        Body: UpsertProductRequest;
       }>,
       reply: FastifyReply
     ) => {
       const storeSchema = getStoreSchema(request);
       const prisma = getPrismaForSchema(storeSchema);
       const productController = new ProductController(prisma);
-      return productController.createProduct(request, reply);
+      return productController.upsertProduct(request, reply);
     }
   );
 }

@@ -150,3 +150,7 @@ export interface CreateProductAttributeRequest {
 export interface CreateProductResponse {
   data: Product;
 }
+
+export interface UpsertProductRequest extends CreateProductRequest {
+  id?: string | number;
+}

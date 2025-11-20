@@ -10,6 +10,7 @@ import { AppError, ErrorHandler, ResponseHandler } from "../../utils";
 import { ProductValidation } from "./products.validation";
 import { GetProductsQuery, createProductSchema } from "./products.schema";
 import { StorePrismaClient } from "../../../packages/libs/db/getPrismaForSchema";
+import { generateSlug } from "@/utils/helpers";
 
 export class ProductService {
   private productRepository: ProductRepository;
@@ -153,6 +154,7 @@ export class ProductService {
       const productData: any = {
         ...validatedData,
         description: validatedData.description || null,
+        slug: generateSlug(validatedData.name),
         sku: validatedData.sku || null,
         compareAtPrice: validatedData.compareAtPrice || null,
         cost: validatedData.cost || null,
@@ -230,6 +232,111 @@ export class ProductService {
       const product = await this.productRepository.createProduct(productData);
 
       return ResponseHandler.success(product);
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        "code" in error &&
+        "message" in error &&
+        "statusCode" in error
+      ) {
+        return ResponseHandler.error(error as AppError);
+      }
+      if (
+        error instanceof Error &&
+        error.name === "PrismaClientKnownRequestError"
+      ) {
+        return ResponseHandler.error(ErrorHandler.handlePrismaError(error));
+      }
+      return ResponseHandler.error(ErrorHandler.handleUnknownError(error));
+    }
+  }
+
+  async updateProduct(
+    id: string,
+    data: CreateProductRequest
+  ): Promise<CreateProductResponse | ErrorResponse> {
+    try {
+      const validatedData = createProductSchema.parse(data);
+
+      const product = await this.productRepository.findById(id);
+      if (!product) {
+        return ResponseHandler.error(
+          ErrorHandler.notFoundError("Product", id)
+        );
+      }
+
+      const productData: any = {
+        ...validatedData,
+        description: validatedData.description || null,
+        slug: generateSlug(validatedData.name),
+        sku: validatedData.sku || null,
+        compareAtPrice: validatedData.compareAtPrice || null,
+        cost: validatedData.cost || null,
+        weight: validatedData.weight || null,
+        seoTitle: validatedData.seoTitle || null,
+        seoDescription: validatedData.seoDescription || null,
+      };
+
+      const existingSlug = await this.productRepository.findBySlug(
+        productData.slug
+      );
+      if (existingSlug && existingSlug.id !== id) {
+        return ResponseHandler.error(
+          ErrorHandler.createError(
+            "CONFLICT",
+            "Product with this slug already exists"
+          )
+        );
+      }
+
+      if (productData.sku) {
+        const existingSku = await this.productRepository.findBySku(
+          productData.sku
+        );
+        if (existingSku && existingSku.id !== id) {
+          return ResponseHandler.error(
+            ErrorHandler.createError(
+              "CONFLICT",
+              "Product with this SKU already exists"
+            )
+          );
+        }
+      }
+
+      const category = await this.productRepository.findCategoryById(
+        productData.categoryId
+      );
+      if (!category) {
+        return ResponseHandler.error(
+          ErrorHandler.createError("CATEGORY_NOT_FOUND", "Category not found")
+        );
+      }
+
+      if (productData.variants && productData.variants.length > 0) {
+        const variantSkus = productData.variants.map((v: any) => v.sku);
+        const uniqueSkus = new Set(variantSkus);
+        if (uniqueSkus.size !== variantSkus.length) {
+          return ResponseHandler.error(
+            ErrorHandler.createError("CONFLICT", "Duplicate variant SKUs found")
+          );
+        }
+        for (const variant of productData.variants) {
+          const existingVariant = await this.productRepository.findVariantBySku(
+            variant.sku
+          );
+          if (existingVariant && existingVariant.productId !== id) {
+            return ResponseHandler.error(
+              ErrorHandler.createError(
+                "CONFLICT",
+                `Variant SKU '${variant.sku}' already exists`
+              )
+            );
+          }
+        }
+      }
+
+      const updated = await this.productRepository.updateProduct(id, productData);
+      return ResponseHandler.success(updated);
     } catch (error) {
       if (
         error instanceof Error &&

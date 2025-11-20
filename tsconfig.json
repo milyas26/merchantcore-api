@@ -24,7 +24,8 @@
       "@/*": ["src/*"],
       "@/modules/*": ["src/modules/*"],
       "@/shared/*": ["src/shared/*"],
-      "@/infra/*": ["src/infra/*"]
+      "@/infra/*": ["src/infra/*"],
+      "@/utils/*": ["src/utils/*"]
     }
   },
   "include": ["src/**/*", "scripts/**/*"],

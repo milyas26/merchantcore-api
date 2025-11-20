@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { ProductService } from './products.service';
-import { GetProductsQuery, CreateProductRequest } from "./products.interface";
+import { GetProductsQuery, CreateProductRequest, UpsertProductRequest } from "./products.interface";
 import { ErrorHandler, ResponseHandler } from '../../utils';
 import { AppError } from '../../utils';
 import { StorePrismaClient } from "../../../packages/libs/db/getPrismaForSchema";
@@ -211,6 +211,81 @@ export class ProductController {
       return reply
         .code(appError.statusCode)
         .send(ResponseHandler.error(appError));
+    }
+  }
+
+  async upsertProduct(
+    request: FastifyRequest<{ Body: UpsertProductRequest }>,
+    reply: FastifyReply
+  ) {
+    try {
+      const body = request.body;
+      const payload: any = {
+        name: body.name,
+        description: body.description,
+        categoryId: body.categoryId,
+        sku: body.sku,
+        basePrice: typeof body.basePrice === 'string' ? Number(body.basePrice) : body.basePrice,
+        compareAtPrice: body.compareAtPrice === undefined ? undefined : (typeof body.compareAtPrice === 'string' ? Number(body.compareAtPrice) : body.compareAtPrice),
+        cost: body.cost === undefined ? undefined : (typeof body.cost === 'string' ? Number(body.cost) : body.cost),
+        weight: body.weight === undefined ? undefined : (typeof body.weight === 'string' ? Number(body.weight) : body.weight),
+        isActive: body.isActive,
+        isFeatured: body.isFeatured,
+        trackInventory: body.trackInventory,
+        seoTitle: body.seoTitle,
+        seoDescription: body.seoDescription,
+        images: body.images,
+        variants: body.variants,
+        attributes: body.attributes,
+      };
+      const isCreate = !body.id || Number(body.id) === 0;
+      if (isCreate) {
+        const result = await this.productService.createProduct(payload);
+        if ("error" in result) {
+          const error = result.error;
+          const appError: AppError = {
+            code: error.code,
+            message: error.message,
+            statusCode:
+              error.code === "DUPLICATE_SLUG" ||
+              error.code === "DUPLICATE_SKU" ||
+              error.code === "DUPLICATE_VARIANT_SKU"
+                ? 409
+                : error.code === "CATEGORY_NOT_FOUND"
+                ? 400
+                : 400,
+            ...(error.details && { details: error.details }),
+          };
+          return reply.code(appError.statusCode).send(ResponseHandler.error(appError));
+        }
+        return reply.code(201).send(ResponseHandler.success(result.data));
+      }
+
+      const id = String(body.id);
+      const result = await this.productService.updateProduct(id, payload);
+      if ("error" in result) {
+        const error = result.error;
+        const appError: AppError = {
+          code: error.code,
+          message: error.message,
+          statusCode:
+            error.code === "PRODUCT_NOT_FOUND" ? 404 :
+            error.code === "DUPLICATE_SLUG" ||
+            error.code === "DUPLICATE_SKU" ||
+            error.code === "DUPLICATE_VARIANT_SKU"
+              ? 409
+              : error.code === "CATEGORY_NOT_FOUND"
+              ? 400
+              : 400,
+          ...(error.details && { details: error.details }),
+        };
+        return reply.code(appError.statusCode).send(ResponseHandler.error(appError));
+      }
+      return reply.code(200).send(ResponseHandler.success(result.data));
+    } catch (error) {
+      request.log.error(error);
+      const appError = ErrorHandler.handleUnknownError(error);
+      return reply.code(appError.statusCode).send(ResponseHandler.error(appError));
     }
   }
 }

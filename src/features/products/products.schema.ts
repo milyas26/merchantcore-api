@@ -134,14 +134,16 @@ export const createProductVariantSchema = z.object({
   cost: z.number().positive().optional(),
   weight: z.number().positive().optional(),
   barcode: z.string().max(100).optional(),
-  image: z.string().url().optional(),
+  image: z.string().optional(),
   position: z.number().int().nonnegative().optional().default(0),
   isActive: z.boolean().optional().default(true),
-  inventory: z.object({
-    quantity: z.number().int().nonnegative(),
-    reserved: z.number().int().nonnegative().optional().default(0),
-    lowStockThreshold: z.number().int().positive().optional(),
-  }).optional(),
+  inventory: z
+    .object({
+      quantity: z.number().int().nonnegative(),
+      reserved: z.number().int().nonnegative().optional().default(0),
+      lowStockThreshold: z.number().int().positive().optional(),
+    })
+    .optional(),
   options: z.array(createVariantOptionSchema).optional(),
 });
 
@@ -153,9 +155,8 @@ export const createProductAttributeSchema = z.object({
 
 export const createProductSchema = z.object({
   name: z.string().min(1).max(255),
-  slug: z.string().min(1).max(255).regex(/^[a-z0-9-]+$/),
   description: z.string().optional(),
-  categoryId: z.string().uuid(),
+  categoryId: z.string(),
   sku: z.string().min(1).max(100).optional(),
   basePrice: z.number().positive(),
   compareAtPrice: z.number().positive().optional(),
@@ -176,3 +177,7 @@ export type CreateProductImageRequest = z.infer<typeof createProductImageSchema>
 export type CreateProductVariantRequest = z.infer<typeof createProductVariantSchema>;
 export type CreateVariantOptionRequest = z.infer<typeof createVariantOptionSchema>;
 export type CreateProductAttributeRequest = z.infer<typeof createProductAttributeSchema>;
+
+export const upsertProductSchema = createProductSchema.extend({
+  id: z.union([z.string(), z.number().int().nonnegative()]).optional(),
+});

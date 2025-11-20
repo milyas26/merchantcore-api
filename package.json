@@ -4,34 +4,27 @@
   "description": "MerchantCore Ecommerce API",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "tsc",
+    "dev": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/server.ts",
+    "build": "tsc && tsc-alias -p tsconfig.json",
     "start": "node dist/server.js",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
     "db:studio": "prisma studio",
-    
     "prisma:generate:public": "cd prisma/public && npx prisma generate",
     "prisma:generate:store": "cd prisma/store && npx prisma generate",
     "prisma:generate:all": "npm run prisma:generate:public && npm run prisma:generate:store",
-    
     "prisma:migrate:dev:public": "cd prisma/public && npx prisma migrate dev",
     "prisma:migrate:dev:store": "cd prisma/store && npx prisma migrate dev",
     "prisma:migrate:dev:all": "npm run prisma:migrate:dev:public && npm run prisma:migrate:dev:store",
-    
     "prisma:migrate:deploy:public": "cd prisma/public && npx prisma migrate deploy",
     "prisma:migrate:deploy:store": "cd prisma/store && npx prisma migrate deploy",
     "prisma:migrate:deploy:all": "npm run prisma:migrate:deploy:public && npm run prisma:migrate:deploy:store",
-    
     "prisma:reset:public": "cd prisma/public && npx prisma migrate reset",
     "prisma:reset:store": "cd prisma/store && npx prisma migrate reset",
-    
     "prisma:studio:public": "cd prisma/public && npx prisma studio",
     "prisma:studio:store": "cd prisma/store && npx prisma studio",
-    
     "setup:multi-schema": "npx tsx scripts/setup-migrations.ts",
-    
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "lint:check": "eslint \"src/**/*.{ts,tsx}\"",
@@ -69,6 +62,8 @@
     "@typescript-eslint/parser": "^8.46.4",
     "eslint": "^9.39.1",
     "ts-node-dev": "^2.0.0",
+    "tsc-alias": "^1.8.16",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.3"
   }
 }

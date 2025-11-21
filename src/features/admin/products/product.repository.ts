@@ -397,17 +397,6 @@ export class ProductRepository {
               },
             });
           }
-
-          // Create variant options if provided
-          if (variant.options && variant.options.length > 0) {
-            await tx.variantOption.createMany({
-              data: variant.options.map((option) => ({
-                variantId: createdVariant.id,
-                optionName: option.optionName,
-                optionValue: option.optionValue,
-              })),
-            });
-          }
         }
       } else {
         // No variants provided: create a default variant mirroring product master
@@ -488,13 +477,6 @@ export class ProductRepository {
                   lowStockThreshold: true,
                 },
               },
-              options: {
-                select: {
-                  id: true,
-                  optionName: true,
-                  optionValue: true,
-                },
-              },
             },
           },
           images: {
@@ -570,9 +552,6 @@ export class ProductRepository {
         });
         if (variants.length > 0) {
           const variantIds = variants.map((v) => v.id);
-          await tx.variantOption.deleteMany({
-            where: { variantId: { in: variantIds } },
-          });
           await tx.inventory.deleteMany({
             where: { variantId: { in: variantIds } },
           });
@@ -606,15 +585,6 @@ export class ProductRepository {
                   lowStockThreshold:
                     variant.inventory.lowStockThreshold || null,
                 },
-              });
-            }
-            if (variant.options && variant.options.length > 0) {
-              await tx.variantOption.createMany({
-                data: variant.options.map((option) => ({
-                  variantId: createdVariant.id,
-                  optionName: option.optionName,
-                  optionValue: option.optionValue,
-                })),
               });
             }
           }
@@ -697,13 +667,6 @@ export class ProductRepository {
                   quantity: true,
                   reserved: true,
                   lowStockThreshold: true,
-                },
-              },
-              options: {
-                select: {
-                  id: true,
-                  optionName: true,
-                  optionValue: true,
                 },
               },
             },

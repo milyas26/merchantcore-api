@@ -82,8 +82,7 @@ model ProductVariant {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  product    Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
-  options    VariantOption[]
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
   inventory  Inventory?
   cartItems  CartItem[]
   orderItems OrderItem[]
@@ -116,17 +115,6 @@ model ProductAttribute {
   @@map("product_attributes")
 }
 
-model VariantOption {
-  id          String @id @default(cuid())
-  variantId   String
-  optionName  String // e.g., "Color", "Size"
-  optionValue String // e.g., "Red", "Large"
-
-  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
-
-  @@map("variant_options")
-}
-
 model Inventory {
   id                String   @id @default(cuid())
   variantId         String   @unique
@@ -155,10 +143,11 @@ model Customer {
   authUserId String?
   authUser   AuthUser? @relation(fields: [authUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
-  addresses      CustomerAddress[]
-  orders         Order[]
-  carts          Cart[]
-  productReviews ProductReview[]
+  addresses            CustomerAddress[]
+  orders               Order[]
+  carts                Cart[]
+  productReviews       ProductReview[]
+  promotionRedemptions PromotionRedemption[]
 
   @@unique([authUserId])
   @@map("customers")
@@ -241,14 +230,15 @@ model Order {
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
 
-  customer        Customer             @relation(fields: [customerId], references: [id])
-  billingAddress  CustomerAddress      @relation("OrderBillingAddress", fields: [billingAddressId], references: [id])
-  shippingAddress CustomerAddress      @relation("OrderShippingAddress", fields: [shippingAddressId], references: [id])
-  items           OrderItem[]
-  transactions    PaymentTransaction[]
-  fulfillments    Fulfillment[]
-  events          OrderEvent[]
-  productReviews  ProductReview[]
+  customer             Customer              @relation(fields: [customerId], references: [id])
+  billingAddress       CustomerAddress       @relation("OrderBillingAddress", fields: [billingAddressId], references: [id])
+  shippingAddress      CustomerAddress       @relation("OrderShippingAddress", fields: [shippingAddressId], references: [id])
+  items                OrderItem[]
+  transactions         PaymentTransaction[]
+  fulfillments         Fulfillment[]
+  events               OrderEvent[]
+  productReviews       ProductReview[]
+  promotionRedemptions PromotionRedemption[]
 
   @@map("orders")
 }
@@ -369,6 +359,49 @@ model ProductReview {
   @@map("product_reviews")
 }
 
+// Simple promotions (per-store)
+model Promotion {
+  id                    String        @id @default(cuid())
+  title                 String
+  description           String?
+  couponCode            String?       @unique
+  type                  PromotionType
+  value                 Decimal?      @db.Decimal(10, 2)
+  currency              String?
+  startsAt              DateTime?
+  endsAt                DateTime?
+  isActive              Boolean       @default(true)
+  minSubtotal           Decimal?      @db.Decimal(10, 2)
+  usageLimit            Int?
+  usageLimitPerCustomer Int?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  redemptions PromotionRedemption[]
+
+  @@index([isActive, startsAt, endsAt])
+  @@index([couponCode])
+  @@map("promotions")
+}
+
+model PromotionRedemption {
+  id            String   @id @default(cuid())
+  promotionId   String
+  customerId    String?
+  orderId       String?
+  amountApplied Decimal  @db.Decimal(10, 2)
+  createdAt     DateTime @default(now())
+
+  promotion Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  customer  Customer? @relation(fields: [customerId], references: [id])
+  order     Order?    @relation(fields: [orderId], references: [id])
+
+  @@index([promotionId])
+  @@index([customerId])
+  @@index([orderId])
+  @@map("promotion_redemptions")
+}
+
 // Enums
 enum OrderStatus {
   PENDING
@@ -426,20 +459,13 @@ enum ShippingType {
 // Authentication user accounts
 model AuthUser {
   id            String     @id @default(cuid())
-  // Email address for login (unique)
   email         String     @unique @db.VarChar(320)
-  // Password hash, nullable for OAuth users
   passwordHash  String?    @db.VarChar(255)
-  // Google OAuth subject ID, nullable for email/password users
   googleOauthId String?    @unique @db.VarChar(255)
-  // Account creation timestamp
   createdAt     DateTime   @default(now())
-  // Last login timestamp
   lastLoginAt   DateTime?
-  // Account status: ACTIVE or SUSPENDED
   status        AuthStatus @default(ACTIVE)
 
-  // Back-reference to Customer (one-to-one)
   customer Customer?
 
   @@index([status])
@@ -465,4 +491,10 @@ enum ReviewStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum PromotionType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  FREE_SHIPPING
 }

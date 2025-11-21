@@ -9,6 +9,7 @@ import userRoutes from "./features/admin/user/user.route";
 import { storesRoutes } from "./features/admin/store/stores.route";
 import inventoryRoutes from "./features/admin/inventory/inventory.route";
 import frontstoreProductRoutes from "./features/frontstore/products/products.route";
+import frontstoreAuthRoutes from "./features/frontstore/auth/auth.route";
 import fastifyCookie from "@fastify/cookie";
 import authPlugin from "./plugins/auth.plugin";
 
@@ -49,5 +50,6 @@ app.register(userRoutes, { prefix: "/api/user" });
 app.register(storesRoutes, { prefix: "/api" });
 app.register(inventoryRoutes, { prefix: "/api/inventories" });
 app.register(frontstoreProductRoutes, { prefix: "/api/frontstore/products" });
+app.register(frontstoreAuthRoutes, { prefix: "/api/frontstore/auth" });
 
 export default app;

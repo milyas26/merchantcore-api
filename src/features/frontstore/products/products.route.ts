@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { FrontstoreProductController } from "./products.controller";
-import { getPrismaForSchema, getPrismaPublic } from "../../../../packages/libs/db/getPrismaForSchema";
+import { getPrismaForSchema } from "../../../../packages/libs/db/getPrismaForSchema";
 import type { GetProductsQuery } from "./products.schema";
 
 export default async function frontstoreProductRoutes(fastify: FastifyInstance) {
@@ -11,14 +11,11 @@ export default async function frontstoreProductRoutes(fastify: FastifyInstance) 
       if (!storeHeader || typeof storeHeader !== "string" || storeHeader.trim() === "") {
         return reply
           .code(400)
-          .send({ success: false, data: [], message: "x-store header is required" });
-      }
-      const publicPrisma = getPrismaPublic();
-      const store = await publicPrisma.store.findUnique({ where: { slug: storeHeader } });
-      if (!store || (store as any).isActive === false) {
-        return reply
-          .code(400)
-          .send({ success: false, data: [], message: "Invalid store" });
+          .send({
+            success: false,
+            data: [],
+            message: "x-store header is required",
+          });
       }
     }
   );

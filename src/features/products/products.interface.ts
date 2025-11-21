@@ -104,6 +104,7 @@ export interface CreateProductRequest {
   isActive?: boolean;
   isFeatured?: boolean;
   trackInventory?: boolean;
+  isVariant?: boolean;
   seoTitle?: string;
   seoDescription?: string;
   images?: CreateProductImageRequest[];

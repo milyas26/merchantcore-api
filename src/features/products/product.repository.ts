@@ -185,10 +185,18 @@ export class ProductRepository {
             cost: true,
             weight: true,
             image: true,
+            barcode: true,
             position: true,
             isActive: true,
             createdAt: true,
             updatedAt: true,
+            inventory: {
+              select: {
+                quantity: true,
+                reserved: true,
+                lowStockThreshold: true,
+              },
+            },
           },
         },
         images: {
@@ -329,6 +337,7 @@ export class ProductRepository {
           isActive: data.isActive ?? true,
           isFeatured: data.isFeatured ?? false,
           trackInventory: data.trackInventory ?? true,
+          isVariant: data.isVariant ?? false,
           seoTitle: data.seoTitle || null,
           seoDescription: data.seoDescription || null,
         },
@@ -400,6 +409,34 @@ export class ProductRepository {
             });
           }
         }
+      } else {
+        // No variants provided: create a default variant mirroring product master
+        const defaultSku = product.sku
+          ? `${product.sku}-DEFAULT`
+          : `${product.slug}-DEFAULT`;
+        const createdVariant = await tx.productVariant.create({
+          data: {
+            productId: product.id,
+            title: "Default",
+            sku: defaultSku,
+            price: product.basePrice,
+            compareAtPrice: null,
+            cost: product.cost || null,
+            weight: product.weight || null,
+            barcode: null,
+            image: null,
+            position: 0,
+            isActive: product.isActive,
+          },
+        });
+        await tx.inventory.create({
+          data: {
+            variantId: createdVariant.id,
+            quantity: 1,
+            reserved: 0,
+            lowStockThreshold: 10,
+          },
+        });
       }
 
       // Create attributes if provided
@@ -506,6 +543,7 @@ export class ProductRepository {
           isActive: data.isActive ?? true,
           isFeatured: data.isFeatured ?? false,
           trackInventory: data.trackInventory ?? true,
+          isVariant: data.isVariant ?? false,
           seoTitle: data.seoTitle || null,
           seoDescription: data.seoDescription || null,
         },
@@ -580,6 +618,34 @@ export class ProductRepository {
               });
             }
           }
+        } else {
+          // Non-variant update: ensure one default variant exists and mirrors product
+          const defaultSku = data.sku
+            ? `${data.sku}-DEFAULT`
+            : `${data.slug}-DEFAULT`;
+          const createdVariant = await tx.productVariant.create({
+            data: {
+              productId: id,
+              title: "Default",
+              sku: defaultSku,
+              price: data.basePrice,
+              compareAtPrice: null,
+              cost: data.cost || null,
+              weight: data.weight || null,
+              barcode: null,
+              image: null,
+              position: 0,
+              isActive: data.isActive ?? true,
+            },
+          });
+          await tx.inventory.create({
+            data: {
+              variantId: createdVariant.id,
+              quantity: 1,
+              reserved: 0,
+              lowStockThreshold: 10,
+            },
+          });
         }
       }
 

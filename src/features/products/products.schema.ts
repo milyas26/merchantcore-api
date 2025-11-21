@@ -165,6 +165,7 @@ export const createProductSchema = z.object({
   isActive: z.boolean().optional().default(true),
   isFeatured: z.boolean().optional().default(false),
   trackInventory: z.boolean().optional().default(true),
+  isVariant: z.boolean().optional().default(false),
   seoTitle: z.string().max(255).optional(),
   seoDescription: z.string().max(500).optional(),
   images: z.array(createProductImageSchema).optional(),

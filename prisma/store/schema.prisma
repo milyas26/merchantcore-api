@@ -45,6 +45,7 @@ model Product {
   isActive       Boolean  @default(true)
   isFeatured     Boolean  @default(false)
   trackInventory Boolean  @default(true)
+  isVariant      Boolean  @default(false) @map("is_variant")
   seoTitle       String?
   seoDescription String?
   createdAt      DateTime @default(now())

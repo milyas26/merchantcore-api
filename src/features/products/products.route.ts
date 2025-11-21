@@ -53,20 +53,6 @@ export default async function productRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // GET /api/products/slug/:slug - Get product by slug
-  fastify.get(
-    "/slug/:slug",
-    async (
-      request: FastifyRequest<{ Params: { slug: string } }>,
-      reply: FastifyReply
-    ) => {
-      const storeSchema = getStoreSchema(request);
-      const prisma = getPrismaForSchema(storeSchema);
-      const productController = new ProductController(prisma);
-      return productController.getProductBySlug(request, reply);
-    }
-  );
-
   // POST /api/products/check-stock - Check product stock availability
   fastify.post(
     "/check-stock",

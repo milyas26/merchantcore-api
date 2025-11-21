@@ -201,6 +201,33 @@ export class ProductService {
         );
       }
 
+      // If no variants provided, create a default variant mirroring product master
+      if (!productData.variants || productData.variants.length === 0) {
+        const defaultSku = productData.sku
+          ? `${productData.sku}-DEFAULT`
+          : `${productData.slug}-DEFAULT`;
+        productData.variants = [
+          {
+            title: "Default",
+            sku: defaultSku,
+            price: productData.basePrice,
+            compareAtPrice: null as any,
+            cost: productData.cost || null,
+            weight: productData.weight || null,
+            barcode: productData.barcode || null,
+            image: undefined,
+            position: 0,
+            isActive: productData.isActive ?? true,
+            inventory: {
+              quantity: 1,
+              reserved: 0,
+              lowStockThreshold: undefined,
+            },
+            options: [],
+          },
+        ];
+      }
+
       // Validate variants (if provided)
       if (productData.variants && productData.variants.length > 0) {
         const variantSkus = productData.variants.map((v: any) => v.sku);
@@ -310,6 +337,64 @@ export class ProductService {
         return ResponseHandler.error(
           ErrorHandler.createError("CATEGORY_NOT_FOUND", "Category not found")
         );
+      }
+
+      const existing = await this.productRepository.findById(id);
+      const existingVariantCount = existing?.variants?.length ?? 0;
+      const isNonVariant = existingVariantCount <= 1;
+
+      if (isNonVariant) {
+        // Enforce non-variant constraints
+        const requestedVariantCount = productData.variants?.length ?? 0;
+        if (requestedVariantCount === 0) {
+          return ResponseHandler.error(
+            ErrorHandler.createError(
+              "VALIDATION_ERROR",
+              "Non-variant product must have exactly 1 default variant"
+            )
+          );
+        }
+        if (requestedVariantCount !== 1) {
+          return ResponseHandler.error(
+            ErrorHandler.createError(
+              "VALIDATION_ERROR",
+              "Non-variant product cannot have more than 1 variant"
+            )
+          );
+        }
+
+        // Force the single variant to mirror product master attributes
+        const defaultSku = productData.sku
+          ? `${productData.sku}-DEFAULT`
+          : `${productData.slug}-DEFAULT`;
+        const incomingVariant = productData.variants![0] as any;
+        productData.variants = [
+          {
+            title: "Default",
+            sku: defaultSku,
+            price: productData.basePrice,
+            compareAtPrice: null as any,
+            cost: productData.cost || null,
+            weight: productData.weight || null,
+            barcode: incomingVariant?.barcode || undefined,
+            image: incomingVariant?.image || undefined,
+            position: 0,
+            isActive: productData.isActive ?? true,
+            inventory: incomingVariant?.inventory
+              ? {
+                  quantity: incomingVariant.inventory.quantity,
+                  reserved: incomingVariant.inventory.reserved ?? 0,
+                  lowStockThreshold:
+                    incomingVariant.inventory.lowStockThreshold || undefined,
+                }
+              : {
+                  quantity: 1,
+                  reserved: 0,
+                  lowStockThreshold: undefined,
+                },
+            options: [],
+          },
+        ];
       }
 
       if (productData.variants && productData.variants.length > 0) {

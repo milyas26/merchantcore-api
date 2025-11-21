@@ -232,6 +232,7 @@ export class ProductController {
         isActive: body.isActive,
         isFeatured: body.isFeatured,
         trackInventory: body.trackInventory,
+        isVariant: body.isVariant,
         seoTitle: body.seoTitle,
         seoDescription: body.seoDescription,
         images: body.images,

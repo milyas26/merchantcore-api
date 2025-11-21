@@ -7,6 +7,7 @@ import categoryRoutes from "./features/categories/categories.route";
 import authRoutes from "./features/auth/auth.route";
 import userRoutes from "./features/user/user.route";
 import { storesRoutes } from "./features/store/stores.route";
+import inventoryRoutes from "./features/inventory/inventory.route";
 import fastifyCookie from "@fastify/cookie";
 import authPlugin from "./plugins/auth.plugin";
 
@@ -45,5 +46,6 @@ app.register(categoryRoutes, { prefix: "/api/categories" });
 app.register(authRoutes, { prefix: "/api/auth" });
 app.register(userRoutes, { prefix: "/api/user" });
 app.register(storesRoutes, { prefix: "/api" });
+app.register(inventoryRoutes, { prefix: "/api/inventories" });
 
 export default app;

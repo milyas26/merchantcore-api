@@ -32,32 +32,37 @@ model Category {
 }
 
 model Product {
-  id             String   @id @default(cuid())
-  name           String
-  slug           String   @unique
-  description    String?
-  categoryId     String
-  sku            String?  @unique
-  basePrice      Decimal  @db.Decimal(10, 2)
-  compareAtPrice Decimal? @db.Decimal(10, 2)
-  cost           Decimal? @db.Decimal(10, 2)
-  weight         Decimal? @db.Decimal(8, 2) // Weight in kg
-  isActive       Boolean  @default(true)
-  isFeatured     Boolean  @default(false)
-  trackInventory Boolean  @default(true)
-  isVariant      Boolean  @default(false) @map("is_variant")
-  seoTitle       String?
-  seoDescription String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id              String        @id @default(cuid())
+  name            String
+  slug            String        @unique
+  description     String?
+  categoryId      String
+  sku             String?       @unique
+  basePrice       Decimal       @db.Decimal(10, 2)
+  compareAtPrice  Decimal?      @db.Decimal(10, 2)
+  cost            Decimal?      @db.Decimal(10, 2)
+  weight          Decimal?      @db.Decimal(8, 2) // Weight in kg
+  isActive        Boolean       @default(true)
+  isFeatured      Boolean       @default(false)
+  trackInventory  Boolean       @default(true)
+  isVariant       Boolean       @default(false) @map("is_variant")
+  seoTitle        String?
+  seoDescription  String?
+  status          ProductStatus @default(ACTIVE)
+  statusChangedAt DateTime      @default(now())
+  reviewComment   String?       @db.Text
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
-  category   Category           @relation(fields: [categoryId], references: [id])
-  variants   ProductVariant[]
-  images     ProductImage[]
-  attributes ProductAttribute[]
-  cartItems  CartItem[]
-  orderItems OrderItem[]
+  category       Category           @relation(fields: [categoryId], references: [id])
+  variants       ProductVariant[]
+  images         ProductImage[]
+  attributes     ProductAttribute[]
+  cartItems      CartItem[]
+  orderItems     OrderItem[]
+  productReviews ProductReview[]
 
+  @@index([status, statusChangedAt])
   @@map("products")
 }
 
@@ -146,10 +151,16 @@ model Customer {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  addresses CustomerAddress[]
-  orders    Order[]
-  carts     Cart[]
+  // Foreign key to AuthUser for one-to-one linkage
+  authUserId String?
+  authUser   AuthUser? @relation(fields: [authUserId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
+  addresses      CustomerAddress[]
+  orders         Order[]
+  carts          Cart[]
+  productReviews ProductReview[]
+
+  @@unique([authUserId])
   @@map("customers")
 }
 
@@ -237,6 +248,7 @@ model Order {
   transactions    PaymentTransaction[]
   fulfillments    Fulfillment[]
   events          OrderEvent[]
+  productReviews  ProductReview[]
 
   @@map("orders")
 }
@@ -329,6 +341,34 @@ model Fulfillment {
   @@map("fulfillments")
 }
 
+// Product reviews
+model ProductReview {
+  id                 String       @id @default(cuid())
+  productId          String
+  customerId         String
+  orderId            String?
+  rating             Int // 1 - 5
+  title              String?
+  body               String?
+  images             String[]     @default([])
+  isVerifiedPurchase Boolean      @default(false)
+  status             ReviewStatus @default(PENDING)
+  isVisible          Boolean      @default(true)
+  likes              Int          @default(0)
+  repliedAt          DateTime?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id])
+  order    Order?   @relation(fields: [orderId], references: [id])
+
+  @@index([productId])
+  @@index([customerId])
+  @@index([orderId])
+  @@map("product_reviews")
+}
+
 // Enums
 enum OrderStatus {
   PENDING
@@ -381,4 +421,48 @@ enum ShippingType {
   FLAT_RATE
   WEIGHT_BASED
   FREE
+}
+
+// Authentication user accounts
+model AuthUser {
+  id            String     @id @default(cuid())
+  // Email address for login (unique)
+  email         String     @unique @db.VarChar(320)
+  // Password hash, nullable for OAuth users
+  passwordHash  String?    @db.VarChar(255)
+  // Google OAuth subject ID, nullable for email/password users
+  googleOauthId String?    @unique @db.VarChar(255)
+  // Account creation timestamp
+  createdAt     DateTime   @default(now())
+  // Last login timestamp
+  lastLoginAt   DateTime?
+  // Account status: ACTIVE or SUSPENDED
+  status        AuthStatus @default(ACTIVE)
+
+  // Back-reference to Customer (one-to-one)
+  customer Customer?
+
+  @@index([status])
+  @@map("auth_users")
+}
+
+// Product status lifecycle
+enum ProductStatus {
+  ACTIVE
+  DRAFT
+  DELETED
+  REVIEW
+}
+
+// Authentication account status
+enum AuthStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+// Review moderation status
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

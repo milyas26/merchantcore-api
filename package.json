@@ -25,6 +25,7 @@
     "prisma:studio:public": "cd prisma/public && npx prisma studio",
     "prisma:studio:store": "cd prisma/store && npx prisma studio",
     "setup:multi-schema": "npx tsx scripts/setup-migrations.ts",
+    "migrate:stores": "npx tsx scripts/migrate-store-schemas.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "lint:check": "eslint \"src/**/*.{ts,tsx}\"",

@@ -1,13 +1,14 @@
 import Fastify from 'fastify';
 import fastifyJwt from "@fastify/jwt";
 import fastifyCors from "@fastify/cors";
-import healthRoute from "./features/health/health.route";
-import productRoutes from "./features/products/products.route";
-import categoryRoutes from "./features/categories/categories.route";
-import authRoutes from "./features/auth/auth.route";
-import userRoutes from "./features/user/user.route";
-import { storesRoutes } from "./features/store/stores.route";
-import inventoryRoutes from "./features/inventory/inventory.route";
+import healthRoute from "./features/admin/health/health.route";
+import productRoutes from "./features/admin/products/products.route";
+import categoryRoutes from "./features/admin/categories/categories.route";
+import authRoutes from "./features/admin/auth/auth.route";
+import userRoutes from "./features/admin/user/user.route";
+import { storesRoutes } from "./features/admin/store/stores.route";
+import inventoryRoutes from "./features/admin/inventory/inventory.route";
+import frontstoreProductRoutes from "./features/frontstore/products/products.route";
 import fastifyCookie from "@fastify/cookie";
 import authPlugin from "./plugins/auth.plugin";
 
@@ -26,7 +27,7 @@ app.register(fastifyCors, {
         ],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "X-Store"],
 });
 
 app.register(fastifyCookie);
@@ -47,5 +48,6 @@ app.register(authRoutes, { prefix: "/api/auth" });
 app.register(userRoutes, { prefix: "/api/user" });
 app.register(storesRoutes, { prefix: "/api" });
 app.register(inventoryRoutes, { prefix: "/api/inventories" });
+app.register(frontstoreProductRoutes, { prefix: "/api/frontstore/products" });
 
 export default app;

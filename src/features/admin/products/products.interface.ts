@@ -101,6 +101,7 @@ export interface CreateProductRequest {
   compareAtPrice?: number;
   cost?: number;
   weight?: number;
+  barcode?: string;
   isActive?: boolean;
   isFeatured?: boolean;
   trackInventory?: boolean;

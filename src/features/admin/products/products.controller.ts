@@ -229,6 +229,7 @@ export class ProductController {
         compareAtPrice: body.compareAtPrice === undefined ? undefined : (typeof body.compareAtPrice === 'string' ? Number(body.compareAtPrice) : body.compareAtPrice),
         cost: body.cost === undefined ? undefined : (typeof body.cost === 'string' ? Number(body.cost) : body.cost),
         weight: body.weight === undefined ? undefined : (typeof body.weight === 'string' ? Number(body.weight) : body.weight),
+        barcode: body.barcode,
         isActive: body.isActive,
         isFeatured: body.isFeatured,
         trackInventory: body.trackInventory,

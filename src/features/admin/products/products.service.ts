@@ -159,6 +159,7 @@ export class ProductService {
         compareAtPrice: validatedData.compareAtPrice || null,
         cost: validatedData.cost || null,
         weight: validatedData.weight || null,
+        barcode: validatedData.barcode || null,
         seoTitle: validatedData.seoTitle || null,
         seoDescription: validatedData.seoDescription || null,
       };
@@ -300,6 +301,7 @@ export class ProductService {
         compareAtPrice: validatedData.compareAtPrice || null,
         cost: validatedData.cost || null,
         weight: validatedData.weight || null,
+        barcode: validatedData.barcode || null,
         seoTitle: validatedData.seoTitle || null,
         seoDescription: validatedData.seoDescription || null,
       };

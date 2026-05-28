@@ -36,6 +36,14 @@ export class ProductRepository {
       };
     }
 
+    const sortFieldMap: Record<string, string> = {
+      price: "basePrice",
+      name: "name",
+      createdAt: "createdAt",
+      updatedAt: "updatedAt",
+    };
+    const prismaSortField = sortFieldMap[sortBy] || sortBy;
+
     // Get total count
     const total = await this.prisma.product.count({ where });
 
@@ -45,7 +53,7 @@ export class ProductRepository {
       skip,
       take: limit,
       orderBy: {
-        [sortBy]: sortOrder,
+        [prismaSortField]: sortOrder,
       },
       include: {
         category: {

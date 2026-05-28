@@ -60,7 +60,8 @@ model Product {
   attributes     ProductAttribute[]
   cartItems      CartItem[]
   orderItems     OrderItem[]
-  productReviews ProductReview[]
+  productReviews    ProductReview[]
+  promotionProducts PromotionProduct[]
 
   @@index([status, statusChangedAt])
   @@map("products")
@@ -377,11 +378,27 @@ model Promotion {
   createdAt             DateTime      @default(now())
   updatedAt             DateTime      @updatedAt
 
-  redemptions PromotionRedemption[]
+  redemptions     PromotionRedemption[]
+  promotionProducts PromotionProduct[]
 
   @@index([isActive, startsAt, endsAt])
   @@index([couponCode])
   @@map("promotions")
+}
+
+model PromotionProduct {
+  id          String    @id @default(cuid())
+  promotionId String
+  productId   String
+  createdAt   DateTime  @default(now())
+
+  promotion Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([promotionId, productId])
+  @@index([promotionId])
+  @@index([productId])
+  @@map("promotion_products")
 }
 
 model PromotionRedemption {

@@ -40,4 +40,8 @@ export class FrontstoreProductService {
     }
     return result;
   }
+
+  async getProductBySlug(slug: string) {
+    return this.productRepository.findBySlug(slug);
+  }
 }

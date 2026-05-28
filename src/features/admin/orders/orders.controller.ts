@@ -2,7 +2,8 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import { OrdersService } from "./orders.service";
 import { ErrorHandler, ResponseHandler } from "../../../utils";
 import { StorePrismaClient } from "../../../../packages/libs/db/getPrismaForSchema";
-import { GetOrdersQuery } from "./orders.schema";
+import { GetOrdersQuery, UpdateOrderStatusBody, UpdatePaymentStatusBody } from "./orders.schema";
+import { updateOrderStatusSchema, updatePaymentStatusSchema } from "./orders.schema";
 
 export class OrdersController {
   private service: OrdersService;
@@ -61,6 +62,40 @@ export class OrdersController {
           );
       }
       return reply.code(200).send(ResponseHandler.success(result.data));
+    } catch (error) {
+      const appError = ErrorHandler.handleUnknownError(error);
+      return reply.code(appError.statusCode).send(ResponseHandler.error(appError));
+    }
+  }
+
+  async updateOrderStatus(
+    request: FastifyRequest<{ Params: { id: string }; Body: UpdateOrderStatusBody }>,
+    reply: FastifyReply
+  ) {
+    try {
+      const validated = updateOrderStatusSchema.parse(request.body);
+      const result = await this.service.updateStatus(request.params.id, validated);
+      if ("error" in result) {
+        return reply.code(result.error.statusCode).send(ResponseHandler.error(result.error));
+      }
+      return reply.code(200).send(ResponseHandler.success(result.data, "Order status updated"));
+    } catch (error) {
+      const appError = ErrorHandler.handleUnknownError(error);
+      return reply.code(appError.statusCode).send(ResponseHandler.error(appError));
+    }
+  }
+
+  async updatePaymentStatus(
+    request: FastifyRequest<{ Params: { id: string }; Body: UpdatePaymentStatusBody }>,
+    reply: FastifyReply
+  ) {
+    try {
+      const validated = updatePaymentStatusSchema.parse(request.body);
+      const result = await this.service.updatePaymentStatus(request.params.id, validated);
+      if ("error" in result) {
+        return reply.code(result.error.statusCode).send(ResponseHandler.error(result.error));
+      }
+      return reply.code(200).send(ResponseHandler.success(result.data, "Payment status updated"));
     } catch (error) {
       const appError = ErrorHandler.handleUnknownError(error);
       return reply.code(appError.statusCode).send(ResponseHandler.error(appError));

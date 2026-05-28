@@ -12,6 +12,8 @@ export class FrontstoreProductRepository {
       q,
       category,
       published = true,
+      priceMin,
+      priceMax,
       sortBy = "createdAt",
       sortOrder = "desc",
     } = query;
@@ -30,6 +32,13 @@ export class FrontstoreProductRepository {
       where.category = { slug: category };
     }
 
+    if (priceMin !== undefined || priceMax !== undefined) {
+      where.basePrice = {
+        ...(priceMin !== undefined && { gte: priceMin }),
+        ...(priceMax !== undefined && { lte: priceMax }),
+      };
+    }
+
     const total = await this.prisma.product.count({ where });
 
     const products = await this.prisma.product.findMany({
@@ -37,52 +46,25 @@ export class FrontstoreProductRepository {
       skip,
       take: limit,
       orderBy: { [sortBy]: sortOrder },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        basePrice: true,
+        compareAtPrice: true,
+        isVariant: true,
+        isActive: true,
+        isFeatured: true,
         category: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            description: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-        },
-        variants: {
-          select: {
-            id: true,
-            productId: true,
-            title: true,
-            sku: true,
-            price: true,
-            compareAtPrice: true,
-            cost: true,
-            weight: true,
-            barcode: true,
-            image: true,
-            position: true,
-            isActive: true,
-            createdAt: true,
-            updatedAt: true,
-            inventory: {
-              select: {
-                quantity: true,
-                reserved: true,
-                lowStockThreshold: true,
-              },
-            },
-          },
+          select: { name: true, slug: true },
         },
         images: {
-          select: {
-            id: true,
-            productId: true,
-            url: true,
-            alt: true,
-            position: true,
-            createdAt: true,
-          },
+          select: { id: true, url: true, alt: true },
+          take: 1,
           orderBy: { position: "asc" },
+        },
+        _count: {
+          select: { variants: true },
         },
       },
     });
@@ -98,5 +80,52 @@ export class FrontstoreProductRepository {
         hasPrev: page > 1,
       },
     };
+  }
+
+  async findBySlug(slug: string) {
+    return this.prisma.product.findUnique({
+      where: { slug, isActive: true },
+      include: {
+        category: {
+          select: { id: true, name: true, slug: true, description: true },
+        },
+        variants: {
+          select: {
+            id: true, title: true, sku: true, price: true, compareAtPrice: true,
+            image: true, inventory: { select: { quantity: true, reserved: true } },
+          },
+        },
+        images: {
+          select: { id: true, url: true, alt: true, position: true },
+          orderBy: { position: "asc" },
+        },
+        attributes: {
+          select: { id: true, name: true, value: true },
+          orderBy: { position: "asc" },
+        },
+        productReviews: {
+          where: { isVisible: true, status: "APPROVED" },
+          select: { id: true, rating: true, title: true, body: true, createdAt: true },
+          orderBy: { createdAt: "desc" },
+          take: 10,
+        },
+      },
+    });
+  }
+
+  async findRelated(productId: string, categoryId: string, limit = 4) {
+    return this.prisma.product.findMany({
+      where: {
+        id: { not: productId },
+        categoryId,
+        isActive: true,
+      },
+      take: limit,
+      orderBy: { createdAt: "desc" },
+      include: {
+        variants: { select: { id: true, price: true, compareAtPrice: true, inventory: { select: { quantity: true } } } },
+        images: { select: { id: true, url: true, alt: true }, orderBy: { position: "asc" } },
+      },
+    });
   }
 }

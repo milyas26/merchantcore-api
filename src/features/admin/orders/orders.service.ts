@@ -1,7 +1,7 @@
 import { OrdersRepository } from "./orders.repository";
 import { AppError, ErrorHandler, ResponseHandler } from "../../../utils";
 import { StorePrismaClient } from "../../../../packages/libs/db/getPrismaForSchema";
-import { GetOrdersQuery } from "./orders.schema";
+import { GetOrdersQuery, UpdateOrderStatusBody, UpdatePaymentStatusBody } from "./orders.schema";
 import { GetOrdersResponse, OrderResponse, ErrorResponse } from "./orders.interface";
 import { OrdersValidation } from "./orders.validation";
 
@@ -39,6 +39,32 @@ export class OrdersService {
       if (error instanceof Error && "code" in error && "message" in error && "statusCode" in error) {
         return ResponseHandler.error(error as AppError);
       }
+      return ResponseHandler.error(ErrorHandler.handleUnknownError(error));
+    }
+  }
+
+  async updateStatus(id: string, data: UpdateOrderStatusBody): Promise<OrderResponse | ErrorResponse> {
+    try {
+      const order = await this.repository.findById(id);
+      if (!order) {
+        return ResponseHandler.error(ErrorHandler.notFoundError("Order", id));
+      }
+      const updated = await this.repository.updateStatus(id, data.status);
+      return ResponseHandler.success(updated);
+    } catch (error) {
+      return ResponseHandler.error(ErrorHandler.handleUnknownError(error));
+    }
+  }
+
+  async updatePaymentStatus(id: string, data: UpdatePaymentStatusBody): Promise<OrderResponse | ErrorResponse> {
+    try {
+      const order = await this.repository.findById(id);
+      if (!order) {
+        return ResponseHandler.error(ErrorHandler.notFoundError("Order", id));
+      }
+      const updated = await this.repository.updatePaymentStatus(id, data.paymentStatus);
+      return ResponseHandler.success(updated);
+    } catch (error) {
       return ResponseHandler.error(ErrorHandler.handleUnknownError(error));
     }
   }

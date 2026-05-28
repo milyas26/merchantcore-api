@@ -7,6 +7,8 @@ export const getProductsQuerySchema = z.object({
   category: z.string().trim().optional(),
   published: z.coerce.boolean().optional().default(true),
   featured: z.coerce.boolean().optional(),
+  priceMin: z.coerce.number().min(0).optional(),
+  priceMax: z.coerce.number().min(0).optional(),
   sortBy: z
     .enum(["name", "price", "createdAt", "updatedAt"])
     .optional()

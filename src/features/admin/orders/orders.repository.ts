@@ -1,5 +1,6 @@
 import { StorePrismaClient } from "../../../../packages/libs/db/getPrismaForSchema";
-import { GetOrdersQuery } from "./orders.schema";
+import type { GetOrdersQuery } from "./orders.schema";
+import type { OrderStatus, PaymentStatus } from "@prisma/client";
 
 export class OrdersRepository {
   constructor(private prisma: StorePrismaClient) {}
@@ -121,5 +122,25 @@ export class OrdersRepository {
     });
 
     return { ...order, items };
+  }
+
+  async updateStatus(id: string, status: OrderStatus) {
+    return this.prisma.order.update({
+      where: { id },
+      data: { status },
+      include: {
+        customer: { select: { id: true, email: true, firstName: true, lastName: true } },
+      },
+    });
+  }
+
+  async updatePaymentStatus(id: string, paymentStatus: PaymentStatus) {
+    return this.prisma.order.update({
+      where: { id },
+      data: { paymentStatus },
+      include: {
+        customer: { select: { id: true, email: true, firstName: true, lastName: true } },
+      },
+    });
   }
 }

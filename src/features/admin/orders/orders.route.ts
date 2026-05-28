@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { OrdersController } from "./orders.controller";
 import { AuthenticatedRequest } from "../../../plugins/auth.plugin";
 import { getPrismaForSchema } from "../../../../packages/libs/db/getPrismaForSchema";
-import { GetOrdersQuery } from "./orders.schema";
+import { GetOrdersQuery, UpdateOrderStatusBody, UpdatePaymentStatusBody } from "./orders.schema";
 
 export default async function ordersRoutes(fastify: FastifyInstance) {
   const getStoreSchema = (request: FastifyRequest): string => {
@@ -41,6 +41,32 @@ export default async function ordersRoutes(fastify: FastifyInstance) {
       const prisma = getPrismaForSchema(storeSchema);
       const controller = new OrdersController(prisma);
       return controller.getOrderById(request, reply);
+    }
+  );
+
+  fastify.patch(
+    "/:id/status",
+    async (
+      request: FastifyRequest<{ Params: { id: string }; Body: UpdateOrderStatusBody }>,
+      reply: FastifyReply
+    ) => {
+      const storeSchema = getStoreSchema(request);
+      const prisma = getPrismaForSchema(storeSchema);
+      const controller = new OrdersController(prisma);
+      return controller.updateOrderStatus(request, reply);
+    }
+  );
+
+  fastify.patch(
+    "/:id/payment-status",
+    async (
+      request: FastifyRequest<{ Params: { id: string }; Body: UpdatePaymentStatusBody }>,
+      reply: FastifyReply
+    ) => {
+      const storeSchema = getStoreSchema(request);
+      const prisma = getPrismaForSchema(storeSchema);
+      const controller = new OrdersController(prisma);
+      return controller.updatePaymentStatus(request, reply);
     }
   );
 }

@@ -1,9 +1,9 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import { FrontstoreProductController } from "./products.controller";
+import { FrontstoreCategoryController } from "./categories.controller";
 import { getPrismaForSchema } from "../../../../packages/libs/db/getPrismaForSchema";
-import type { GetProductsQuery } from "./products.schema";
+import type { GetCategoriesQuery } from "./categories.schema";
 
-export default async function frontstoreProductRoutes(fastify: FastifyInstance) {
+export default async function frontstoreCategoryRoutes(fastify: FastifyInstance) {
   fastify.addHook(
     "preHandler",
     async (request: FastifyRequest, reply: FastifyReply) => {
@@ -11,11 +11,7 @@ export default async function frontstoreProductRoutes(fastify: FastifyInstance) 
       if (!storeHeader || typeof storeHeader !== "string" || storeHeader.trim() === "") {
         return reply
           .code(400)
-          .send({
-            success: false,
-            data: [],
-            message: "x-store header is required",
-          });
+          .send({ success: false, data: [], message: "x-store header is required" });
       }
     }
   );
@@ -23,13 +19,13 @@ export default async function frontstoreProductRoutes(fastify: FastifyInstance) 
   fastify.get(
     "/",
     async (
-      request: FastifyRequest<{ Querystring: GetProductsQuery }>,
+      request: FastifyRequest<{ Querystring: GetCategoriesQuery }>,
       reply: FastifyReply
     ) => {
       const storeSlug = String(request.headers["x-store"]);
       const prisma = getPrismaForSchema(storeSlug);
-      const controller = new FrontstoreProductController(prisma);
-      return controller.getProducts(request, reply);
+      const controller = new FrontstoreCategoryController(prisma);
+      return controller.getCategories(request, reply);
     }
   );
 
@@ -41,8 +37,8 @@ export default async function frontstoreProductRoutes(fastify: FastifyInstance) 
     ) => {
       const storeSlug = String(request.headers["x-store"]);
       const prisma = getPrismaForSchema(storeSlug);
-      const controller = new FrontstoreProductController(prisma);
-      return controller.getProductBySlug(request, reply);
+      const controller = new FrontstoreCategoryController(prisma);
+      return controller.getCategoryBySlug(request, reply);
     }
   );
 }

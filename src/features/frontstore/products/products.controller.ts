@@ -33,4 +33,26 @@ export class FrontstoreProductController {
         .send(ResponseHandler.error(appError));
     }
   }
+
+  async getProductBySlug(
+    request: FastifyRequest<{ Params: { slug: string } }>,
+    reply: FastifyReply
+  ) {
+    try {
+      const result = await this.service.getProductBySlug(request.params.slug);
+      if (!result) {
+        return reply
+          .code(404)
+          .send(ResponseHandler.error({ code: "NOT_FOUND", message: "Product not found", statusCode: 404 }));
+      }
+      return reply
+        .code(200)
+        .send(ResponseHandler.success(result, "Product retrieved"));
+    } catch (error) {
+      const appError = ErrorHandler.handleUnknownError(error);
+      return reply
+        .code(appError.statusCode)
+        .send(ResponseHandler.error(appError));
+    }
+  }
 }

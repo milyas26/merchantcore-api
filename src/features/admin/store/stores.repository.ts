@@ -51,6 +51,12 @@ export class StoresRepository {
     return store as Store | null;
   }
 
+  async deleteStore(storeId: string): Promise<void> {
+    await this.prisma.store.delete({
+      where: { id: storeId },
+    });
+  }
+
   async createStoreWithMembership(data: {
     name: string;
     slug: string;

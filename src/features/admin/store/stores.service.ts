@@ -1,6 +1,6 @@
 import { PublicPrismaClient } from "../../../../packages/libs/db/getPrismaForSchema";
 import { StoresRepository } from "./stores.repository";
-import { AppError } from "../../../utils";
+import { AppError, setupStoreSchema } from "../../../utils";
 import {
   StoreListResponse,
   CreateStoreBody,
@@ -69,6 +69,18 @@ export class StoresService {
         role: MembershipRole.OWNER,
       });
 
+      try {
+        await setupStoreSchema(slug);
+      } catch (migrateError) {
+        console.error("Store schema migration failed, rolling back:", migrateError);
+        await this.storesRepository.deleteStore(result.store.id);
+        throw {
+          code: "STORE_MIGRATION_FAILED",
+          message: "Store created but database schema migration failed. Store has been rolled back.",
+          statusCode: 500,
+        } as AppError;
+      }
+
       return {
         id: result.store.id,
         slug: result.store.slug,
@@ -84,6 +96,9 @@ export class StoresService {
       };
     } catch (error) {
       console.error("Create store error:", error);
+      if (error && typeof error === 'object' && 'statusCode' in error) {
+        throw error;
+      }
       if (
         error instanceof Error &&
         error.message.includes("Unique constraint")

@@ -515,3 +515,27 @@ enum PromotionType {
   FIXED_AMOUNT
   FREE_SHIPPING
 }
+
+model Announcement {
+  id          String           @id @default(cuid())
+  title       String
+  description String?          @db.Text
+  link        String?
+  type        AnnouncementType @default(INFO)
+  createdBy   String
+  isActive    Boolean          @default(true)
+  startsAt    DateTime?
+  endsAt      DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([isActive, startsAt, endsAt])
+  @@map("announcements")
+}
+
+enum AnnouncementType {
+  INFO
+  WARNING
+  PROMO
+  MAINTENANCE
+}

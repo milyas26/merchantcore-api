@@ -13,6 +13,8 @@ import inventoryRoutes from "./features/admin/inventory/inventory.route";
 import promotionRoutes from "./features/admin/promotions/promotions.route";
 import frontstoreProductRoutes from "./features/frontstore/products/products.route";
 import frontstoreAuthRoutes from "./features/frontstore/auth/auth.route";
+import frontstoreAnnouncementRoutes from "./features/frontstore/announcements/announcements.route";
+import announcementRoutes from "./features/admin/announcements/announcements.route";
 import fastifyCookie from "@fastify/cookie";
 import authPlugin from "./plugins/auth.plugin";
 
@@ -55,7 +57,9 @@ app.register(userRoutes, { prefix: "/api/user" });
 app.register(storesRoutes, { prefix: "/api" });
 app.register(inventoryRoutes, { prefix: "/api/inventories" });
 app.register(promotionRoutes, { prefix: "/api/promotions" });
+app.register(announcementRoutes, { prefix: "/api/announcements" });
 app.register(frontstoreProductRoutes, { prefix: "/api/frontstore/products" });
 app.register(frontstoreAuthRoutes, { prefix: "/api/frontstore/auth" });
+app.register(frontstoreAnnouncementRoutes, { prefix: "/api/frontstore/announcements" });
 
 export default app;

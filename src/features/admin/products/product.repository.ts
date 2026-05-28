@@ -27,6 +27,8 @@ export class ProductRepository {
       where.OR = [
         { name: { contains: q, mode: "insensitive" } },
         { description: { contains: q, mode: "insensitive" } },
+        { sku: { contains: q, mode: "insensitive" } },
+        { variants: { some: { sku: { contains: q, mode: "insensitive" } } } },
       ];
     }
 

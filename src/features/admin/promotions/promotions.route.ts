@@ -56,6 +56,16 @@ export default async function promotionRoutes(fastify: FastifyInstance) {
     return ctrl.updatePromotion(request, reply);
   });
 
+  fastify.get("/:id/products", async (
+    request: FastifyRequest<{ Params: { id: string } }>,
+    reply: FastifyReply
+  ) => {
+    const schema = getStoreSchema(request);
+    const prisma = getPrismaForSchema(schema);
+    const ctrl = new PromotionController(prisma);
+    return ctrl.getPromotionProducts(request, reply);
+  });
+
   fastify.delete("/:id", async (
     request: FastifyRequest<{ Params: { id: string } }>,
     reply: FastifyReply

@@ -170,6 +170,21 @@ export class PromotionRepository {
     });
   }
 
+  async getPromotionProducts(promotionId: string) {
+    return this.prisma.promotionProduct.findMany({
+      where: { promotionId },
+      include: {
+        product: {
+          select: {
+            id: true, name: true, slug: true, basePrice: true, sku: true,
+            images: { select: { url: true, alt: true }, take: 1 },
+          },
+        },
+      },
+      orderBy: { createdAt: "asc" },
+    });
+  }
+
   async delete(id: string) {
     await this.prisma.promotion.delete({ where: { id } });
   }

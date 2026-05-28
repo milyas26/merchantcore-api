@@ -101,6 +101,19 @@ export class PromotionService {
     }
   }
 
+  async getPromotionProducts(promotionId: string) {
+    try {
+      const existing = await this.repository.findById(promotionId);
+      if (!existing) {
+        return ResponseHandler.error(ErrorHandler.notFoundError("Promotion", promotionId));
+      }
+      const products = await this.repository.getPromotionProducts(promotionId);
+      return ResponseHandler.success(products);
+    } catch (error: any) {
+      return ResponseHandler.error(ErrorHandler.handleUnknownError(error));
+    }
+  }
+
   async deletePromotion(id: string): Promise<{ success: boolean } | ErrorResponse> {
     try {
       const existing = await this.repository.findById(id);

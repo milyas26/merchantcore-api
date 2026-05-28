@@ -92,6 +92,26 @@ export class PromotionController {
     }
   }
 
+  async getPromotionProducts(
+    request: FastifyRequest<{ Params: { id: string } }>,
+    reply: FastifyReply
+  ) {
+    try {
+      const result = await this.service.getPromotionProducts(request.params.id);
+      if ("error" in result) {
+        const e = result.error;
+        const statusCode = (e as AppError).code === "NOT_FOUND" ? 404 : 400;
+        const appError: AppError = { code: e.code, message: e.message, statusCode };
+        return reply.code(statusCode).send(ResponseHandler.error(appError));
+      }
+      return reply.code(200).send(ResponseHandler.success(result.data));
+    } catch (error) {
+      request.log.error(error);
+      const e = ErrorHandler.handleUnknownError(error);
+      return reply.code(e.statusCode).send(ResponseHandler.error(e));
+    }
+  }
+
   async deletePromotion(
     request: FastifyRequest<{ Params: { id: string } }>,
     reply: FastifyReply
